@@ -1,4 +1,14 @@
 .streamlit/secrets.toml
+*.csv
+*json
+*.joblib
+summary.md
+*.png
+*.docx
+*.doc
+*.txt
+*.zip
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
