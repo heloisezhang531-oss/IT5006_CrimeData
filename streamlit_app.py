@@ -194,7 +194,11 @@ def main():
                 st.plotly_chart(fig_b, use_container_width=True)
             else:
                 st.warning(f"No data for {year_b}")
-       
+        
+        st.markdown("**Hardship index in Chicago (Layer:Community Area)**")
+        hardshipdf = pd.read_csv('Hardship Index of Chicago.csv')
+        st.dataframe(hardshipdf,width="stretch")
+    
     # --- TAB 3: RAW DATA ---
     with tab3:
         st.header("Raw Data Sample (2015-2024)")
