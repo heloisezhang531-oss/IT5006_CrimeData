@@ -1,9 +1,23 @@
+import json
+from urllib.request import urlopen
+
 import pandas as pd
 from sqlalchemy import Engine, text
-import streamlit as st
-import plotly.express as px
-import requests
-import json
+
+try:
+    import streamlit as st
+except Exception:  # pragma: no cover - optional dependency for FastAPI runtime
+    class _DummyStreamlit:
+        @staticmethod
+        def error(*args, **kwargs):
+            return None
+
+    st = _DummyStreamlit()
+
+try:
+    import requests
+except Exception:  # pragma: no cover - fallback when requests is unavailable
+    requests = None
 
 # Common date filter clause
 DATE_FILTER = "year >= 2015 AND year <= 2024"
@@ -310,8 +324,11 @@ def get_map_data(engine,selected_year, limit=100000):
 def get_geojson1():
     url = "https://data.cityofchicago.org/resource/igwz-8jzy.geojson"
     try:
-        resp = requests.get(url)
-        return resp.json()
+        if requests is not None:
+            resp = requests.get(url, timeout=15)
+            return resp.json()
+        with urlopen(url, timeout=15) as resp:
+            return json.load(resp)
     except Exception as e:
         st.error(f"GeoJSON Error: {e}")
         return None

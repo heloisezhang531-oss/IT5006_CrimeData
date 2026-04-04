@@ -1,0 +1,36 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: crime-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATA_SOURCE_MODE=${DATA_SOURCE_MODE:-hybrid}
+      - CACHE_DIR=${CACHE_DIR:-data_cache}
+      - CHICAGO_TABLE=${CHICAGO_TABLE:-chicago_crimes}
+      - TIDB_USER=${TIDB_USER:-}
+      - TIDB_PASSWORD=${TIDB_PASSWORD:-}
+      - TIDB_HOST=${TIDB_HOST:-}
+      - TIDB_PORT=${TIDB_PORT:-}
+      - TIDB_DB_NAME=${TIDB_DB_NAME:-Chicago_data}
+      - TID_CA_PATH=${TID_CA_PATH:-}
+    volumes:
+      - ./:/app
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: crime-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - INTERNAL_API_BASE=${INTERNAL_API_BASE:-http://backend:8000/api}
+      - NEXT_PUBLIC_API_BASE=${NEXT_PUBLIC_API_BASE:-http://localhost:8000/api}
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app/frontend
+      - /app/frontend/node_modules

@@ -7,6 +7,7 @@ summary.md
 *.doc
 *.txt
 *.zip
+docs/
 
 
 # Byte-compiled / optimized / DLL files
@@ -180,3 +181,9 @@ check_db.py
 
 # data files
 data*/
+
+# frontend artifacts
+frontend/node_modules/
+frontend/.next/
+frontend/test-results/
+frontend/playwright-report/

@@ -1,0 +1,113 @@
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap");
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --bg-0: #f4f7fb;
+  --bg-1: #ecf2ff;
+  --bg-2: #d8e8ff;
+  --ink-0: #0b1320;
+  --ink-1: #35435b;
+  --accent-0: #1d4ed8;
+  --accent-1: #0ea5e9;
+  --accent-2: #22c55e;
+}
+
+body {
+  @apply bg-aurora text-slate-900 antialiased;
+  font-family: "Manrope", "Segoe UI", sans-serif;
+  position: relative;
+}
+
+.glass {
+  @apply rounded-3xl border border-white/50 bg-white/65 backdrop-blur-xl shadow-glass;
+}
+
+.glass-strong {
+  @apply rounded-3xl border border-white/70 bg-white/80 backdrop-blur-2xl shadow-glass;
+}
+
+.section-title {
+  @apply text-3xl md:text-5xl font-semibold tracking-tight text-slate-900;
+  font-family: "Space Grotesk", "Manrope", sans-serif;
+}
+
+.section-subtitle {
+  @apply text-sm uppercase tracking-[0.2em] text-sky-700/80;
+}
+
+.story-subtitle {
+  @apply text-sm font-semibold uppercase tracking-[0.24em] text-sky-700/70;
+}
+
+.story-headline {
+  @apply text-3xl leading-tight md:text-5xl md:leading-tight text-[color:var(--ink-0)];
+  font-family: "Space Grotesk", "Manrope", sans-serif;
+}
+
+.story-copy {
+  @apply text-base md:text-lg text-slate-600;
+}
+
+.ambient-gradient {
+  background-image:
+    radial-gradient(circle at 6% 4%, rgba(14, 165, 233, 0.22), transparent 30%),
+    radial-gradient(circle at 92% 3%, rgba(29, 78, 216, 0.16), transparent 34%),
+    radial-gradient(circle at 55% 85%, rgba(34, 197, 94, 0.14), transparent 28%),
+    linear-gradient(180deg, var(--bg-0) 0%, var(--bg-1) 46%, #f8fbff 100%);
+}
+
+.timeline-glow {
+  position: relative;
+}
+
+.timeline-glow::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: 1.6rem;
+  pointer-events: none;
+  background: linear-gradient(
+    130deg,
+    rgba(14, 165, 233, 0.26),
+    rgba(29, 78, 216, 0.2),
+    rgba(34, 197, 94, 0.24)
+  );
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: xor;
+  padding: 1px;
+}
+
+@keyframes floatSlow {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+@keyframes pulseSoft {
+  0% {
+    box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.3);
+  }
+  70% {
+    box-shadow: 0 0 0 18px rgba(14, 165, 233, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(14, 165, 233, 0);
+  }
+}
+
+.float-slow {
+  animation: floatSlow 8s ease-in-out infinite;
+}
+
+.pulse-soft {
+  animation: pulseSoft 2.8s ease-out infinite;
+}

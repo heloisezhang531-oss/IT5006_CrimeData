@@ -1,7 +1,15 @@
-import streamlit as st
 import pandas as pd
 from sqlalchemy import text
-import plotly.express as px
+
+try:
+    import streamlit as st
+except Exception:  # pragma: no cover - optional dependency for FastAPI runtime
+    class _DummyStreamlit:
+        @staticmethod
+        def error(*args, **kwargs):
+            return None
+
+    st = _DummyStreamlit()
 
 # Common filter construction
 def _build_where_clause(age_range, selected_cats):
