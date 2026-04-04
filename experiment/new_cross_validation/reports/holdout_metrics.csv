@@ -1,0 +1,2 @@
+holdout_year,model,threshold,holdout_roc_auc,holdout_pr_auc,holdout_f1,holdout_recall,holdout_precision,holdout_accuracy
+2025,xgboost,0.7849999999999999,0.9934315912665033,0.9749085279677855,0.9081364829396326,0.9351351351351351,0.8826530612244898,0.9621212121212122

@@ -1,0 +1,4 @@
+model,tn,fp,fn,tp
+logistic_regression,721,18,1,184
+random_forest,709,30,2,183
+xgboost,722,17,3,182
