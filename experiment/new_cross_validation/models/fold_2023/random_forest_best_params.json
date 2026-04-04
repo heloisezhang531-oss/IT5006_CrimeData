@@ -1,0 +1,38 @@
+{
+  "fold_year": 2023,
+  "model": "random_forest",
+  "seed": 42,
+  "feature_columns": [
+    "hardship_index",
+    "spatial_lag_hardship",
+    "spatial_lag_crime_lag1",
+    "arrest_rate",
+    "top_type_share"
+  ],
+  "best_params": {
+    "n_estimators": 300,
+    "max_depth": 10,
+    "min_samples_leaf": 1,
+    "max_features": 0.7
+  },
+  "best_threshold": 0.4099999999999999,
+  "selection_metric": "roc_auc",
+  "selection_score": 0.970108251633987,
+  "inner_val_metrics": {
+    "roc_auc": 0.970108251633987,
+    "pr_auc": 0.9157341605865189,
+    "f1": 0.8502415458937198,
+    "recall": 0.8627450980392157,
+    "precision": 0.8380952380952381,
+    "accuracy": 0.9329004329004329
+  },
+  "outer_val_metrics": {
+    "roc_auc": 0.9558060354729828,
+    "pr_auc": 0.9230632188837687,
+    "f1": 0.8356997971602435,
+    "recall": 0.8142292490118577,
+    "precision": 0.8583333333333333,
+    "accuracy": 0.9123376623376623
+  },
+  "outer_train_scale_pos_weight": 2.98568281938326
+}

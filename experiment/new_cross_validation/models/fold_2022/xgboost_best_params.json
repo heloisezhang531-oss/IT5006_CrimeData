@@ -1,0 +1,40 @@
+{
+  "fold_year": 2022,
+  "model": "xgboost",
+  "seed": 42,
+  "feature_columns": [
+    "hardship_index",
+    "spatial_lag_hardship",
+    "spatial_lag_crime_lag1",
+    "arrest_rate",
+    "top_type_share"
+  ],
+  "best_params": {
+    "n_estimators": 300,
+    "max_depth": 3,
+    "learning_rate": 0.1,
+    "subsample": 0.8,
+    "colsample_bytree": 1.0,
+    "reg_lambda": 1.0
+  },
+  "best_threshold": 0.36499999999999994,
+  "selection_metric": "roc_auc",
+  "selection_score": 0.9909808429118774,
+  "inner_val_metrics": {
+    "roc_auc": 0.9909808429118774,
+    "pr_auc": 0.9539716500997255,
+    "f1": 0.9239130434782609,
+    "recall": 0.9770114942528736,
+    "precision": 0.8762886597938144,
+    "accuracy": 0.9696969696969697
+  },
+  "outer_val_metrics": {
+    "roc_auc": 0.9681168300653594,
+    "pr_auc": 0.9189805654587221,
+    "f1": 0.8421052631578947,
+    "recall": 0.8627450980392157,
+    "precision": 0.822429906542056,
+    "accuracy": 0.9285714285714286
+  },
+  "outer_train_scale_pos_weight": 2.9168734491315136
+}

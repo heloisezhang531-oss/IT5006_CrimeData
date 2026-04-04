@@ -1,0 +1,24 @@
+{
+  "chi_rows_total": 10087,
+  "chi_rows_train": 7315,
+  "chi_rows_val": 1848,
+  "chi_rows_test": 924,
+  "ni_rows_total": 588,
+  "ni_rows_eval": 564,
+  "chi_label_rate_train": 0.2503075871496924,
+  "chi_label_rate_val": 0.2624458874458874,
+  "chi_label_rate_test": 0.2002164502164502,
+  "ni_label_rate_eval": 0.25,
+  "chi_q75_count_t1_train": 375.0,
+  "ni_q75_count_t1_eval": 26599.5,
+  "chi_unique_entities": 77,
+  "ni_unique_entities": 47,
+  "chi_month_span": [
+    "2015-01-01",
+    "2025-11-01"
+  ],
+  "ni_month_span_eval": [
+    "2024-01-01",
+    "2024-12-01"
+  ]
+}

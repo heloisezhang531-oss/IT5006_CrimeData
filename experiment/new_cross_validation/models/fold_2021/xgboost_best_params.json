@@ -1,0 +1,40 @@
+{
+  "fold_year": 2021,
+  "model": "xgboost",
+  "seed": 42,
+  "feature_columns": [
+    "hardship_index",
+    "spatial_lag_hardship",
+    "spatial_lag_crime_lag1",
+    "arrest_rate",
+    "top_type_share"
+  ],
+  "best_params": {
+    "n_estimators": 300,
+    "max_depth": 5,
+    "learning_rate": 0.05,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "reg_lambda": 5.0
+  },
+  "best_threshold": 0.235,
+  "selection_metric": "roc_auc",
+  "selection_score": 0.9532743428912783,
+  "inner_val_metrics": {
+    "roc_auc": 0.9532743428912783,
+    "pr_auc": 0.8491656097596322,
+    "f1": 0.7571428571428571,
+    "recall": 0.8833333333333333,
+    "precision": 0.6625,
+    "accuracy": 0.8896103896103896
+  },
+  "outer_val_metrics": {
+    "roc_auc": 0.9898007662835249,
+    "pr_auc": 0.9457224139034599,
+    "f1": 0.9105263157894737,
+    "recall": 0.9942528735632183,
+    "precision": 0.8398058252427184,
+    "accuracy": 0.9632034632034632
+  },
+  "outer_train_scale_pos_weight": 2.7482614742698193
+}

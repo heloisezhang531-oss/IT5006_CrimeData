@@ -1,0 +1,15 @@
+{
+  "champion_round_id": "R0",
+  "champion_model": "logistic_regression",
+  "champion_review_roc_auc": 0.5226266309881834,
+  "champion_review_pr_auc": 0.2678395058448086,
+  "holdout_baseline_roc_auc": 0.527027027027027,
+  "holdout_baseline_pr_auc": 0.2222222222222222,
+  "holdout_champion_roc_auc": 0.527027027027027,
+  "holdout_champion_pr_auc": 0.2222222222222222,
+  "success_by_locked_criteria": false,
+  "criteria": {
+    "roc_auc_at_least_baseline_plus": 0.03,
+    "pr_auc_not_lower_than_baseline": true
+  }
+}

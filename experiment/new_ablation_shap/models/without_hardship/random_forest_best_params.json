@@ -1,0 +1,38 @@
+{
+  "setting": "without_hardship",
+  "model": "random_forest",
+  "seed": 42,
+  "feature_columns": [
+    "spatial_lag_hardship",
+    "spatial_lag_crime_lag1",
+    "arrest_rate",
+    "top_type_share"
+  ],
+  "best_params": {
+    "n_estimators": 500,
+    "max_depth": null,
+    "min_samples_leaf": 1,
+    "max_features": "sqrt"
+  },
+  "best_threshold": 0.4149999999999999,
+  "selection_metric": "roc_auc",
+  "selection_score": 0.9425259622875556,
+  "val_metrics": {
+    "roc_auc": 0.9425259622875556,
+    "pr_auc": 0.8914799239271397,
+    "f1": 0.815677966101695,
+    "recall": 0.7938144329896907,
+    "precision": 0.8387799564270153,
+    "accuracy": 0.9058441558441559
+  },
+  "test_metrics": {
+    "roc_auc": 0.9841275646417731,
+    "pr_auc": 0.9396463107179062,
+    "f1": 0.8585858585858586,
+    "recall": 0.918918918918919,
+    "precision": 0.8056872037914692,
+    "accuracy": 0.9393939393939394
+  },
+  "train_scale_pos_weight": 2.98568281938326,
+  "train_val_scale_pos_weight": 2.948717948717949
+}

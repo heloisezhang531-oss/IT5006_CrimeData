@@ -1,0 +1,59 @@
+{
+  "args": {
+    "chicago_data": "model/NIRBS/chicago_model_dataset.csv",
+    "nibrs_data": "model/NIRBS/NIBRS_model_dataset.csv",
+    "chicago_pop_zip": "model/NIRBS/population of Chicago.zip",
+    "state_pop_url": "https://www2.census.gov/programs-surveys/popest/datasets/2020-2024/state/totals/NST-EST2024-ALLDATA.csv",
+    "state_pop_cache": "data_external/population/NST-EST2024-ALLDATA.csv",
+    "review_end_month": "2024-11",
+    "holdout_start_month": "2024-12",
+    "max_rounds": 5,
+    "seed": 42,
+    "out_dir": "model/NIRBS/zero_shot_popnorm_reweight"
+  },
+  "rounds_executed": [
+    "R0",
+    "R1",
+    "R2",
+    "R3",
+    "R4"
+  ],
+  "nibrs_partition_stats": {
+    "nibrs_rows_after_test_filter": 564,
+    "nibrs_dirty_split_rows_dropped": 24,
+    "review_rows": 470,
+    "holdout_rows": 94,
+    "review_months": [
+      "2024-02",
+      "2024-03",
+      "2024-04",
+      "2024-05",
+      "2024-06",
+      "2024-07",
+      "2024-08",
+      "2024-09",
+      "2024-10",
+      "2024-11"
+    ],
+    "holdout_months": [
+      "2024-12",
+      "2025-01"
+    ],
+    "review_label_rate": 0.2574468085106383,
+    "holdout_label_rate": 0.2127659574468085
+  },
+  "baseline_feature_cols": [
+    "hardship_index",
+    "spatial_lag_hardship",
+    "spatial_lag_crime_lag1",
+    "arrest_rate",
+    "top_type_share"
+  ],
+  "popnorm_feature_cols": [
+    "hardship_index",
+    "spatial_lag_hardship",
+    "spatial_lag_crime_lag1_pc100k_log1p",
+    "arrest_rate",
+    "top_type_share"
+  ]
+}

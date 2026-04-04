@@ -1,0 +1,23 @@
+{
+  "feature_columns": [
+    "hardship_index",
+    "spatial_lag_hardship",
+    "spatial_lag_crime_lag1",
+    "arrest_rate",
+    "top_type_share"
+  ],
+  "impute_medians_from_chicago_train": {
+    "hardship_index": 71.31324094426456,
+    "spatial_lag_hardship": 69.31600991650619,
+    "spatial_lag_crime_lag1": 242.20000000000002,
+    "arrest_rate": 0.1513944223107569,
+    "top_type_share": 0.2410480349344978
+  },
+  "thresholds_from_chicago_val": {
+    "logistic_regression": 0.38999999999999996,
+    "random_forest": 0.5199999999999999,
+    "xgboost": 0.57
+  },
+  "chicago_data": "model\\NIRBS\\chicago_model_dataset.csv",
+  "nibrs_data": "model\\NIRBS\\NIBRS_model_dataset.csv"
+}

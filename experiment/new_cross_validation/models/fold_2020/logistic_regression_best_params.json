@@ -1,0 +1,35 @@
+{
+  "fold_year": 2020,
+  "model": "logistic_regression",
+  "seed": 42,
+  "feature_columns": [
+    "hardship_index",
+    "spatial_lag_hardship",
+    "spatial_lag_crime_lag1",
+    "arrest_rate",
+    "top_type_share"
+  ],
+  "best_params": {
+    "C": 2.0
+  },
+  "best_threshold": 0.605,
+  "selection_metric": "roc_auc",
+  "selection_score": 0.8881147540983607,
+  "inner_val_metrics": {
+    "roc_auc": 0.8881147540983607,
+    "pr_auc": 0.7510366809476865,
+    "f1": 0.7028112449799196,
+    "recall": 0.7172131147540983,
+    "precision": 0.6889763779527559,
+    "accuracy": 0.8398268398268398
+  },
+  "outer_val_metrics": {
+    "roc_auc": 0.8648596176821983,
+    "pr_auc": 0.5801432578381975,
+    "f1": 0.5885714285714285,
+    "recall": 0.5722222222222222,
+    "precision": 0.6058823529411764,
+    "accuracy": 0.8441558441558441
+  },
+  "outer_train_scale_pos_weight": 2.550079491255962
+}

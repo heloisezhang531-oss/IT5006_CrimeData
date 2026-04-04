@@ -1,0 +1,40 @@
+{
+  "setting": "without_hardship",
+  "model": "xgboost",
+  "seed": 42,
+  "feature_columns": [
+    "spatial_lag_hardship",
+    "spatial_lag_crime_lag1",
+    "arrest_rate",
+    "top_type_share"
+  ],
+  "best_params": {
+    "n_estimators": 300,
+    "max_depth": 5,
+    "learning_rate": 0.1,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "reg_lambda": 1.0
+  },
+  "best_threshold": 0.625,
+  "selection_metric": "roc_auc",
+  "selection_score": 0.961286125965313,
+  "val_metrics": {
+    "roc_auc": 0.961286125965313,
+    "pr_auc": 0.9313457261395819,
+    "f1": 0.8593576965669989,
+    "recall": 0.8,
+    "precision": 0.9282296650717703,
+    "accuracy": 0.9312770562770563
+  },
+  "test_metrics": {
+    "roc_auc": 0.9917638883809384,
+    "pr_auc": 0.9680740741344362,
+    "f1": 0.8759493670886076,
+    "recall": 0.9351351351351351,
+    "precision": 0.8238095238095238,
+    "accuracy": 0.946969696969697
+  },
+  "train_scale_pos_weight": 2.98568281938326,
+  "train_val_scale_pos_weight": 2.948717948717949
+}

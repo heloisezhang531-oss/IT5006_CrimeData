@@ -1,0 +1,48 @@
+{
+  "setting": "with_hardship",
+  "model": "xgboost",
+  "seed": 42,
+  "feature_columns": [
+    "hardship_index",
+    "count_lag1",
+    "count_lag3",
+    "count_lag6",
+    "count_lag12",
+    "roll_mean_3",
+    "roll_mean_6",
+    "roll_mean_12",
+    "month_sin",
+    "month_cos",
+    "arrest_rate",
+    "top_type_share"
+  ],
+  "best_params": {
+    "n_estimators": 300,
+    "max_depth": 3,
+    "learning_rate": 0.05,
+    "subsample": 0.8,
+    "colsample_bytree": 1.0,
+    "reg_lambda": 5.0
+  },
+  "best_threshold": 0.735,
+  "selection_metric": "roc_auc",
+  "selection_score": 0.9934922207683172,
+  "val_metrics": {
+    "roc_auc": 0.9934922207683172,
+    "pr_auc": 0.9816679923259162,
+    "f1": 0.9300847457627118,
+    "recall": 0.9051546391752577,
+    "precision": 0.9564270152505446,
+    "accuracy": 0.9642857142857143
+  },
+  "test_metrics": {
+    "roc_auc": 0.9977398237208792,
+    "pr_auc": 0.9907460575560165,
+    "f1": 0.9479166666666666,
+    "recall": 0.9837837837837838,
+    "precision": 0.914572864321608,
+    "accuracy": 0.9783549783549783
+  },
+  "train_scale_pos_weight": 3.078493937460115,
+  "train_val_scale_pos_weight": 3.0151072124756335
+}

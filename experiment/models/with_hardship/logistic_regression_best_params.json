@@ -1,0 +1,43 @@
+{
+  "setting": "with_hardship",
+  "model": "logistic_regression",
+  "seed": 42,
+  "feature_columns": [
+    "hardship_index",
+    "count_lag1",
+    "count_lag3",
+    "count_lag6",
+    "count_lag12",
+    "roll_mean_3",
+    "roll_mean_6",
+    "roll_mean_12",
+    "month_sin",
+    "month_cos",
+    "arrest_rate",
+    "top_type_share"
+  ],
+  "best_params": {
+    "C": 2.0
+  },
+  "best_threshold": 0.6549999999999999,
+  "selection_metric": "roc_auc",
+  "selection_score": 0.9942016927487123,
+  "val_metrics": {
+    "roc_auc": 0.9942016927487123,
+    "pr_auc": 0.9844002889797439,
+    "f1": 0.9283489096573209,
+    "recall": 0.9216494845360824,
+    "precision": 0.9351464435146444,
+    "accuracy": 0.9626623376623377
+  },
+  "test_metrics": {
+    "roc_auc": 0.9977837106389205,
+    "pr_auc": 0.991314195107023,
+    "f1": 0.9509043927648578,
+    "recall": 0.9945945945945946,
+    "precision": 0.9108910891089109,
+    "accuracy": 0.9794372294372294
+  },
+  "train_scale_pos_weight": 3.078493937460115,
+  "train_val_scale_pos_weight": 3.0151072124756335
+}

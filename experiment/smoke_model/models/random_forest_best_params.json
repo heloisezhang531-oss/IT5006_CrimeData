@@ -1,0 +1,34 @@
+{
+  "model": "random_forest",
+  "seed": 42,
+  "feature_columns": [
+    "hardship_index",
+    "count_lag1",
+    "count_lag3",
+    "count_lag6",
+    "count_lag12",
+    "roll_mean_3",
+    "roll_mean_6",
+    "roll_mean_12",
+    "month_sin",
+    "month_cos",
+    "arrest_rate",
+    "top_type_share"
+  ],
+  "best_params": {
+    "n_estimators": 500,
+    "max_depth": 6,
+    "min_samples_leaf": 1,
+    "max_features": 0.7
+  },
+  "best_threshold": 0.44499999999999995,
+  "val_metrics": {
+    "roc_auc": 0.993446838765307,
+    "pr_auc": 0.9823167793171025,
+    "f1": 0.9257028112449799,
+    "recall": 0.9505154639175257,
+    "precision": 0.9021526418786693,
+    "accuracy": 0.95995670995671
+  },
+  "scale_pos_weight": 3.078493937460115
+}

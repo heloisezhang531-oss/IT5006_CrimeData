@@ -1,0 +1,32 @@
+{
+  "q75_train": 375.0,
+  "feature_columns": [
+    "hardship_index",
+    "count_lag1",
+    "count_lag3",
+    "count_lag6",
+    "count_lag12",
+    "roll_mean_3",
+    "roll_mean_6",
+    "roll_mean_12",
+    "month_sin",
+    "month_cos",
+    "arrest_rate",
+    "top_type_share"
+  ],
+  "split_label_distribution": {
+    "test": {
+      "count": 924,
+      "mean": 0.2002164502164502
+    },
+    "train": {
+      "count": 7315,
+      "mean": 0.2503075871496924
+    },
+    "val": {
+      "count": 1848,
+      "mean": 0.2624458874458874
+    }
+  },
+  "n_rows": 10087
+}

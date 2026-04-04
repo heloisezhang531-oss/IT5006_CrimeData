@@ -1,0 +1,35 @@
+{
+  "setting": "without_hardship",
+  "model": "logistic_regression",
+  "seed": 42,
+  "feature_columns": [
+    "spatial_lag_hardship",
+    "spatial_lag_crime_lag1",
+    "arrest_rate",
+    "top_type_share"
+  ],
+  "best_params": {
+    "C": 0.01
+  },
+  "best_threshold": 0.5349999999999999,
+  "selection_metric": "roc_auc",
+  "selection_score": 0.8265015770246046,
+  "val_metrics": {
+    "roc_auc": 0.8265015770246046,
+    "pr_auc": 0.5646529896310755,
+    "f1": 0.6402266288951841,
+    "recall": 0.6989690721649484,
+    "precision": 0.5905923344947736,
+    "accuracy": 0.7938311688311688
+  },
+  "test_metrics": {
+    "roc_auc": 0.8301576271806312,
+    "pr_auc": 0.5088375523784907,
+    "f1": 0.5463182897862233,
+    "recall": 0.6216216216216216,
+    "precision": 0.4872881355932203,
+    "accuracy": 0.7932900432900433
+  },
+  "train_scale_pos_weight": 2.98568281938326,
+  "train_val_scale_pos_weight": 2.948717948717949
+}
