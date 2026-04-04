@@ -111,3 +111,14 @@ body {
 .pulse-soft {
   animation: pulseSoft 2.8s ease-out infinite;
 }
+
+/* Tailwind preflight sets img max-width:100%, which breaks Leaflet tile sizing. */
+.leaflet-container img,
+.leaflet-container .leaflet-tile {
+  max-width: none !important;
+}
+
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+}

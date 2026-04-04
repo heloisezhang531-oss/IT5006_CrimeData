@@ -22,11 +22,13 @@ export function RiskMapClient({ points }: { points: RiskPoint[] }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markerLayerRef = useRef<L.LayerGroup | null>(null);
+  const resizeCleanupRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
-    if (!containerRef.current || mapRef.current) return;
+    const container = containerRef.current;
+    if (!container || mapRef.current) return;
 
-    const map = L.map(containerRef.current, {
+    const map = L.map(container, {
       zoomControl: true,
       attributionControl: true,
       scrollWheelZoom: false,
@@ -39,8 +41,23 @@ export function RiskMapClient({ points }: { points: RiskPoint[] }) {
 
     markerLayerRef.current = L.layerGroup().addTo(map);
     mapRef.current = map;
+    const invalidate = () => map.invalidateSize({ pan: false, debounceMoveend: true });
+    requestAnimationFrame(invalidate);
+    const onWindowResize = () => invalidate();
+    window.addEventListener("resize", onWindowResize);
+    let observer: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== "undefined") {
+      observer = new ResizeObserver(() => invalidate());
+      observer.observe(container);
+    }
+    resizeCleanupRef.current = () => {
+      window.removeEventListener("resize", onWindowResize);
+      observer?.disconnect();
+    };
 
     return () => {
+      resizeCleanupRef.current?.();
+      resizeCleanupRef.current = null;
       map.remove();
       mapRef.current = null;
       markerLayerRef.current = null;
@@ -52,6 +69,7 @@ export function RiskMapClient({ points }: { points: RiskPoint[] }) {
     const markerLayer = markerLayerRef.current;
     if (!map || !markerLayer) return;
 
+    map.invalidateSize({ pan: false, debounceMoveend: true });
     markerLayer.clearLayers();
     const latLngs: L.LatLngExpression[] = [];
 

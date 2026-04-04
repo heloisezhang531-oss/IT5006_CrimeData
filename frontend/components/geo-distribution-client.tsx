@@ -60,6 +60,7 @@ export function GeoDistributionClient({ years }: { years: number[] }) {
   const pointsMapRef = useRef<L.Map | null>(null);
   const pointsLayerRef = useRef<L.LayerGroup | null>(null);
   const pointContainerRef = useRef<HTMLDivElement | null>(null);
+  const resizeCleanupRef = useRef<Array<() => void>>([]);
 
   const leftMapRef = useRef<L.Map | null>(null);
   const leftLayerRef = useRef<L.GeoJSON | null>(null);
@@ -71,6 +72,22 @@ export function GeoDistributionClient({ years }: { years: number[] }) {
 
   const geojsonRef = useRef<Record<string, unknown> | null>(null);
   const hardshipPreview = useMemo(() => hardshipRows.slice(0, 12), [hardshipRows]);
+
+  const bindResizeSync = (map: L.Map, container: HTMLDivElement) => {
+    const invalidate = () => map.invalidateSize({ pan: false, debounceMoveend: true });
+    requestAnimationFrame(invalidate);
+    const onWindowResize = () => invalidate();
+    window.addEventListener("resize", onWindowResize);
+    let observer: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== "undefined") {
+      observer = new ResizeObserver(() => invalidate());
+      observer.observe(container);
+    }
+    return () => {
+      window.removeEventListener("resize", onWindowResize);
+      observer?.disconnect();
+    };
+  };
 
   useEffect(() => {
     if (pointContainerRef.current && !pointsMapRef.current) {
@@ -85,6 +102,7 @@ export function GeoDistributionClient({ years }: { years: number[] }) {
       }).addTo(map);
       pointsLayerRef.current = L.layerGroup().addTo(map);
       pointsMapRef.current = map;
+      resizeCleanupRef.current.push(bindResizeSync(map, pointContainerRef.current));
     }
     if (leftContainerRef.current && !leftMapRef.current) {
       const map = L.map(leftContainerRef.current, {
@@ -96,6 +114,7 @@ export function GeoDistributionClient({ years }: { years: number[] }) {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       }).addTo(map);
       leftMapRef.current = map;
+      resizeCleanupRef.current.push(bindResizeSync(map, leftContainerRef.current));
     }
     if (rightContainerRef.current && !rightMapRef.current) {
       const map = L.map(rightContainerRef.current, {
@@ -107,9 +126,12 @@ export function GeoDistributionClient({ years }: { years: number[] }) {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       }).addTo(map);
       rightMapRef.current = map;
+      resizeCleanupRef.current.push(bindResizeSync(map, rightContainerRef.current));
     }
 
     return () => {
+      resizeCleanupRef.current.forEach((fn) => fn());
+      resizeCleanupRef.current = [];
       pointsMapRef.current?.remove();
       leftMapRef.current?.remove();
       rightMapRef.current?.remove();
@@ -162,6 +184,7 @@ export function GeoDistributionClient({ years }: { years: number[] }) {
         marker.addTo(layer);
         latLngs.push([row.latitude, row.longitude]);
       });
+      map.invalidateSize({ pan: false, debounceMoveend: true });
       if (latLngs.length > 1) {
         map.fitBounds(L.latLngBounds(latLngs).pad(0.15));
       } else {
@@ -178,6 +201,7 @@ export function GeoDistributionClient({ years }: { years: number[] }) {
   ) => {
     const geojson = geojsonRef.current;
     if (!map || !geojson) return;
+    map.invalidateSize({ pan: false, debounceMoveend: true });
     if (layerRef.current) {
       map.removeLayer(layerRef.current);
       layerRef.current = null;
@@ -214,7 +238,12 @@ export function GeoDistributionClient({ years }: { years: number[] }) {
       },
     }).addTo(map);
     layerRef.current = layer;
-    map.fitBounds(layer.getBounds().pad(0.05));
+    const bounds = layer.getBounds();
+    if (bounds.isValid()) {
+      map.fitBounds(bounds.pad(0.05));
+    } else {
+      map.setView(CHICAGO_CENTER, 10);
+    }
   };
 
   useEffect(() => {

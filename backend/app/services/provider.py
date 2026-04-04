@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import json
 import time
+from datetime import date, datetime
 from threading import RLock
 from pathlib import Path
 from typing import Any, Callable, Iterable
@@ -49,9 +50,21 @@ class DataProvider:
             return None
 
     def _save_cache(self, key: str, payload: dict[str, Any]) -> None:
+        def _json_default(value: Any):
+            if isinstance(value, (datetime, date, pd.Timestamp)):
+                return value.isoformat()
+            if hasattr(value, "item"):
+                try:
+                    return value.item()
+                except Exception:
+                    pass
+            if isinstance(value, Path):
+                return str(value)
+            return str(value)
+
         path = self._cache_path(key)
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+        path.write_text(json.dumps(payload, ensure_ascii=False, default=_json_default), encoding="utf-8")
 
     def _load_memory_cache(self, key: str) -> dict[str, Any] | None:
         if self.cache_ttl_seconds <= 0:

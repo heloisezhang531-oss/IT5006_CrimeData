@@ -28,23 +28,55 @@ export default function VictimRiskPage() {
   const [includeRaw, setIncludeRaw] = useState(false);
   const [dashboard, setDashboard] = useState<DashboardRow | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [reloadToken, setReloadToken] = useState(0);
 
   useEffect(() => {
+    let cancelled = false;
     const run = async () => {
-      const filters = await apiGet<FilterRow>("/eda/victim/filters");
-      const row = filters.data[0] ?? { age_min: 0, age_max: 95, categories: [] };
-      setMeta(row);
-      setAgeMin(row.age_min);
-      setAgeMax(row.age_max);
-      setSelected(row.categories.slice(0, Math.min(10, row.categories.length)));
+      setLoading(true);
+      setError("");
+      try {
+        const filters = await apiGet<FilterRow>("/eda/victim/filters", {
+          clientTtlMs: 8000,
+          forceRefresh: reloadToken > 0,
+        });
+        if (cancelled) return;
+        const row = filters.data[0];
+        if (!row) {
+          setMeta(null);
+          setDashboard(null);
+          setError("Victim filter endpoint returned no metadata.");
+          setLoading(false);
+          return;
+        }
+        setMeta(row);
+        setAgeMin(row.age_min);
+        setAgeMax(row.age_max);
+        setSelected([]);
+        if (filters.meta?.error) {
+          setError(`Failed to load filter metadata: ${String(filters.meta.error)}`);
+        }
+      } catch {
+        if (cancelled) return;
+        setMeta(null);
+        setDashboard(null);
+        setError("Failed to load victim filters. Please check backend connection and retry.");
+        setLoading(false);
+      }
     };
     run();
-  }, []);
+    return () => {
+      cancelled = true;
+    };
+  }, [reloadToken]);
 
   useEffect(() => {
     if (!meta) return;
+    let cancelled = false;
     const run = async () => {
       setLoading(true);
+      setError("");
       const payload = {
         age_min: ageMin,
         age_max: ageMax,
@@ -52,11 +84,27 @@ export default function VictimRiskPage() {
         include_raw_sample: includeRaw,
         raw_limit: 100,
       };
-      const res = await apiPost<DashboardRow>("/eda/victim/dashboard", payload);
-      setDashboard(res.data[0] ?? null);
-      setLoading(false);
+      try {
+        const res = await apiPost<DashboardRow>("/eda/victim/dashboard", payload);
+        if (cancelled) return;
+        setDashboard(res.data[0] ?? null);
+        if (res.meta?.error) {
+          setError(`Dashboard request failed: ${String(res.meta.error)}`);
+        } else if (!res.data?.length) {
+          setError("No victim dashboard rows returned for current filters.");
+        }
+      } catch {
+        if (cancelled) return;
+        setDashboard(null);
+        setError("Failed to load victim dashboard data. Please retry.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     };
     run();
+    return () => {
+      cancelled = true;
+    };
   }, [meta, ageMin, ageMax, selected, includeRaw]);
 
   const demographicsByAge = useMemo(() => {
@@ -85,6 +133,14 @@ export default function VictimRiskPage() {
   }));
 
   const kpi = dashboard?.kpi ?? { total_victims: 0, domestic_cases: 0, avg_age: 0 };
+  const hasCharts = demographicsByAge.byAge.length > 0 || relationRows.length > 0 || heatRows.length > 0;
+  const resetFilters = () => {
+    if (!meta) return;
+    setAgeMin(meta.age_min);
+    setAgeMax(meta.age_max);
+    setSelected([]);
+    setIncludeRaw(false);
+  };
 
   return (
     <div className="space-y-8">
@@ -96,76 +152,105 @@ export default function VictimRiskPage() {
       />
 
       <GlassPanel>
-        <div className="grid gap-5 lg:grid-cols-2">
-          <div className="space-y-3">
-            <p className="text-sm font-semibold text-slate-700">Victim Age Range</p>
-            <div className="flex items-center justify-between text-xs text-slate-500">
-              <span>{ageMin}</span>
-              <span>{ageMax}</span>
+        <div className="space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-sm font-semibold text-slate-700">Victim Filters</p>
+            <div className="flex items-center gap-2">
+              <button
+                className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                onClick={resetFilters}
+              >
+                Reset
+              </button>
+              <button
+                className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                onClick={() => setReloadToken((v) => v + 1)}
+              >
+                Reload
+              </button>
             </div>
-            <input
-              type="range"
-              min={meta?.age_min ?? 0}
-              max={meta?.age_max ?? 95}
-              value={ageMin}
-              onChange={(e) => setAgeMin(Math.min(Number(e.target.value), ageMax))}
-              className="w-full"
-            />
-            <input
-              type="range"
-              min={meta?.age_min ?? 0}
-              max={meta?.age_max ?? 95}
-              value={ageMax}
-              onChange={(e) => setAgeMax(Math.max(Number(e.target.value), ageMin))}
-              className="w-full"
-            />
           </div>
-          <div className="space-y-3">
-            <p className="text-sm font-semibold text-slate-700">Offense Categories</p>
-            <select
-              multiple
-              className="h-28 w-full rounded-xl border border-slate-300 bg-white p-2 text-sm"
-              value={selected}
-              onChange={(e) => {
-                const values = Array.from(e.target.selectedOptions).map((opt) => opt.value);
-                setSelected(values);
-              }}
-            >
-              {(meta?.categories ?? []).map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-            <label className="inline-flex items-center gap-2 text-sm text-slate-600">
-              <input type="checkbox" checked={includeRaw} onChange={(e) => setIncludeRaw(e.target.checked)} />
-              Show raw sample
-            </label>
+          <div className="grid gap-5 lg:grid-cols-[1.1fr_1fr]">
+            <div className="space-y-3 rounded-2xl border border-slate-200 bg-white/70 p-4">
+              <p className="text-sm font-semibold text-slate-700">Victim Age Range</p>
+              <div className="flex items-center justify-between text-xs text-slate-500">
+                <span>{ageMin}</span>
+                <span>{ageMax}</span>
+              </div>
+              <input
+                type="range"
+                min={meta?.age_min ?? 0}
+                max={meta?.age_max ?? 95}
+                value={ageMin}
+                onChange={(e) => setAgeMin(Math.min(Number(e.target.value), ageMax))}
+                className="w-full"
+              />
+              <input
+                type="range"
+                min={meta?.age_min ?? 0}
+                max={meta?.age_max ?? 95}
+                value={ageMax}
+                onChange={(e) => setAgeMax(Math.max(Number(e.target.value), ageMin))}
+                className="w-full"
+              />
+            </div>
+            <div className="space-y-3 rounded-2xl border border-slate-200 bg-white/70 p-4">
+              <p className="text-sm font-semibold text-slate-700">Offense Categories</p>
+              <select
+                multiple
+                className="h-40 w-full rounded-xl border border-slate-300 bg-white p-2 text-sm"
+                value={selected}
+                onChange={(e) => {
+                  const values = Array.from(e.target.selectedOptions).map((opt) => opt.value);
+                  setSelected(values);
+                }}
+              >
+                {(meta?.categories ?? []).map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+              <label className="inline-flex items-center gap-2 text-sm text-slate-600">
+                <input type="checkbox" checked={includeRaw} onChange={(e) => setIncludeRaw(e.target.checked)} />
+                Show raw sample
+              </label>
+            </div>
           </div>
+          {error ? <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700">{error}</p> : null}
         </div>
       </GlassPanel>
-
-      <div className="grid gap-4 sm:grid-cols-3">
-        <GlassPanel>
-          <p className="text-xs uppercase tracking-[0.12em] text-slate-500">Total Victims</p>
-          <p className="mt-2 text-3xl font-semibold text-slate-900">{kpi.total_victims.toLocaleString()}</p>
-        </GlassPanel>
-        <GlassPanel>
-          <p className="text-xs uppercase tracking-[0.12em] text-slate-500">Domestic Cases</p>
-          <p className="mt-2 text-3xl font-semibold text-slate-900">{kpi.domestic_cases.toLocaleString()}</p>
-        </GlassPanel>
-        <GlassPanel>
-          <p className="text-xs uppercase tracking-[0.12em] text-slate-500">Avg Victim Age</p>
-          <p className="mt-2 text-3xl font-semibold text-slate-900">{Number(kpi.avg_age ?? 0).toFixed(1)}</p>
-        </GlassPanel>
-      </div>
 
       {loading ? (
         <GlassPanel>
           <p className="text-sm text-slate-500">Analyzing victim risk data...</p>
         </GlassPanel>
+      ) : !dashboard ? (
+        <GlassPanel>
+          <p className="text-sm text-slate-600">No victim dashboard payload returned from backend.</p>
+        </GlassPanel>
+      ) : !hasCharts ? (
+        <GlassPanel>
+          <p className="text-sm text-slate-600">
+            No chart-ready victim rows are available for the current filter set. Try broadening age range, reducing category constraints, or reloading.
+          </p>
+        </GlassPanel>
       ) : (
         <>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <GlassPanel>
+              <p className="text-xs uppercase tracking-[0.12em] text-slate-500">Total Victims</p>
+              <p className="mt-2 text-3xl font-semibold text-slate-900">{kpi.total_victims.toLocaleString()}</p>
+            </GlassPanel>
+            <GlassPanel>
+              <p className="text-xs uppercase tracking-[0.12em] text-slate-500">Domestic Cases</p>
+              <p className="mt-2 text-3xl font-semibold text-slate-900">{kpi.domestic_cases.toLocaleString()}</p>
+            </GlassPanel>
+            <GlassPanel>
+              <p className="text-xs uppercase tracking-[0.12em] text-slate-500">Avg Victim Age</p>
+              <p className="mt-2 text-3xl font-semibold text-slate-900">{Number(kpi.avg_age ?? 0).toFixed(1)}</p>
+            </GlassPanel>
+          </div>
           <div className="grid gap-6 xl:grid-cols-2">
             <GlassPanel>
               <h2 className="mb-4 text-lg font-semibold">Victim Age & Gender Distribution</h2>
