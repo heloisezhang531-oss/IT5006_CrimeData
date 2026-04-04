@@ -14,6 +14,9 @@ class Settings:
     cache_dir: Path = Path(os.getenv("CACHE_DIR", "data_cache"))
     table_name: str = os.getenv("CHICAGO_TABLE", "chicago_crimes")
     mapbox_token: str = os.getenv("MAPBOX_TOKEN", "")
+    api_cache_ttl_seconds: int = int(os.getenv("API_CACHE_TTL_SECONDS", "300"))
+    api_cache_max_entries: int = int(os.getenv("API_CACHE_MAX_ENTRIES", "512"))
+    api_response_cache_max_age: int = int(os.getenv("API_RESPONSE_CACHE_MAX_AGE", "60"))
 
 
 settings = Settings()

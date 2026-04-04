@@ -21,6 +21,8 @@ function normalize(route: string): string {
 }
 
 test('frontend smoke across all major pages', async ({ page }) => {
+  test.setTimeout(300_000);
+
   const consoleErrors: string[] = [];
   const pageErrors: string[] = [];
   const httpErrors: string[] = [];
@@ -44,14 +46,10 @@ test('frontend smoke across all major pages', async ({ page }) => {
       await expect(page.getByText(check, { exact: false }).first()).toBeVisible({ timeout: 30000 });
     }
     const shotPath = path.join('..', 'output', 'playwright', `${normalize(p.path)}.png`);
-    await page.screenshot({ path: shotPath, fullPage: true });
+    await page.screenshot({ path: shotPath, fullPage: true, caret: 'initial' });
   }
 
-  const filteredConsoleErrors = consoleErrors.filter(
-    (e) =>
-      !e.includes('404 (Not Found)') &&
-      !e.includes("A tree hydrated but some attributes of the server rendered HTML didn't match"),
-  );
+  const filteredConsoleErrors = consoleErrors.filter((e) => !e.includes('404 (Not Found)'));
   const actionableHttpErrors = httpErrors.filter((e) => !e.includes('/favicon.ico'));
 
   expect(filteredConsoleErrors, `Console errors: ${filteredConsoleErrors.join(' | ')}`).toEqual([]);

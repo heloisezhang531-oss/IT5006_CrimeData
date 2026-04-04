@@ -187,3 +187,7 @@ frontend/node_modules/
 frontend/.next/
 frontend/test-results/
 frontend/playwright-report/
+
+# keep Next.js source library tracked
+!frontend/lib/
+!frontend/lib/*.ts

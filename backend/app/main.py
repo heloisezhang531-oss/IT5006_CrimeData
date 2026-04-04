@@ -30,6 +30,18 @@ app.add_middleware(
 )
 
 
+@app.middleware("http")
+async def cache_control_middleware(request, call_next):
+    response = await call_next(request)
+    if request.method == "GET" and request.url.path.startswith(settings.api_prefix):
+        if request.url.path == f"{settings.api_prefix}/health":
+            response.headers["Cache-Control"] = "no-store"
+        elif "Cache-Control" not in response.headers:
+            max_age = max(0, settings.api_response_cache_max_age)
+            response.headers["Cache-Control"] = f"public, max-age={max_age}, stale-while-revalidate={max_age}"
+    return response
+
+
 @app.get("/api/health")
 def health():
     return {

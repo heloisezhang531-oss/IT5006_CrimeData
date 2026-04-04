@@ -1,4 +1,4 @@
-import pandas as pd
+﻿import pandas as pd
 from sqlalchemy import text
 
 try:
@@ -11,6 +11,21 @@ except Exception:  # pragma: no cover - optional dependency for FastAPI runtime
 
     st = _DummyStreamlit()
 
+
+def _cache_data(*args, **kwargs):
+    try:
+        runtime = getattr(st, "runtime", None)
+        if runtime is not None and runtime.exists():
+            return st.cache_data(*args, **kwargs)
+    except Exception:
+        pass
+
+    def _decorator(func):
+        return func
+
+    return _decorator
+
+
 # Common filter construction
 def _build_where_clause(age_range, selected_cats):
     conditions = []
@@ -22,7 +37,7 @@ def _build_where_clause(age_range, selected_cats):
     
     clause = "WHERE " + " AND ".join(conditions) if conditions else ""
     return clause
-@st.cache_data(ttl=36000)
+@_cache_data(ttl=36000)
 def get_filter_metadata(_engine):
     """Fetch distinct categories and age range for initial UI setup."""
     try:
@@ -40,7 +55,7 @@ def get_filter_metadata(_engine):
     except Exception as e:
         st.error(f"Error fetching filter options: {e}")
         return 0, 100, []
-@st.cache_data(ttl=36000)
+@_cache_data(ttl=36000)
 def get_kpi_data(_engine, age_range, selected_cats):
     """Fetch aggregated KPI metrics directly from DB."""
     where_clause = _build_where_clause(age_range, selected_cats)
@@ -59,7 +74,7 @@ def get_kpi_data(_engine, age_range, selected_cats):
     except Exception as e:
         st.error(f"Error fetching KPIs: {e}")
         return (0, 0, 0)
-@st.cache_data(ttl=36000)
+@_cache_data(ttl=36000)
 def get_demographics_data(_engine, age_range, selected_cats):
     """Fetch age and gender distribution."""
     where_clause = _build_where_clause(age_range, selected_cats)
@@ -76,7 +91,7 @@ def get_demographics_data(_engine, age_range, selected_cats):
     except Exception as e:
         st.error(f"Error fetching demographics: {e}")
         return pd.DataFrame()
-@st.cache_data(ttl=36000)
+@_cache_data(ttl=36000)
 def get_relationship_data(_engine, age_range, selected_cats, limit=10):
     """Fetch top victim-offender relationships."""
     where_clause = _build_where_clause(age_range, selected_cats)
@@ -94,7 +109,7 @@ def get_relationship_data(_engine, age_range, selected_cats, limit=10):
     except Exception as e:
         st.error(f"Error fetching relationships: {e}")
         return pd.DataFrame()
-@st.cache_data(ttl=36000)
+@_cache_data(ttl=36000)
 def get_heatmap_data(_engine, age_range, selected_cats):
     """Fetch activity vs offense category heatmap data."""
     where_clause = _build_where_clause(age_range, selected_cats)
@@ -110,7 +125,7 @@ def get_heatmap_data(_engine, age_range, selected_cats):
     except Exception as e:
         st.error(f"Error fetching heatmap data: {e}")
         return pd.DataFrame()
-@st.cache_data(ttl=36000)
+@_cache_data(ttl=36000)
 def get_raw_sample(_engine, age_range, selected_cats, limit=100):
     """Fetch raw data sample."""
     where_clause = _build_where_clause(age_range, selected_cats)
@@ -126,3 +141,4 @@ def get_raw_sample(_engine, age_range, selected_cats, limit=100):
     except Exception as e:
         st.error(f"Error fetching raw sample: {e}")
         return pd.DataFrame()
+

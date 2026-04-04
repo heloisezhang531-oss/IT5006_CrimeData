@@ -478,5 +478,9 @@ def model_lab_reliability(engine, table: str) -> dict[str, Any]:
         return {"meta": {"rows": 0}, "data": []}
     df = pd.DataFrame(region_perf)
     df["reliability_band"] = pd.cut(df["accuracy"], bins=[-1, 0.65, 0.8, 2], labels=["weak", "medium", "strong"])
-    band = df.groupby("reliability_band", as_index=False).agg(regions=("community_area", "count"), avg_accuracy=("accuracy", "mean"), avg_recall=("recall", "mean"))
+    band = df.groupby("reliability_band", as_index=False, observed=False).agg(
+        regions=("community_area", "count"),
+        avg_accuracy=("accuracy", "mean"),
+        avg_recall=("recall", "mean"),
+    )
     return df_payload(band)

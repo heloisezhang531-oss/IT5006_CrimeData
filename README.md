@@ -64,6 +64,16 @@ Backend supports `DATA_SOURCE_MODE`:
 
 Cache files are stored under `data_cache/`.
 
+### Cache Tuning
+
+You can tune API/frontend cache behavior via environment variables:
+
+- `API_CACHE_TTL_SECONDS` (default `300`): in-memory TTL cache in FastAPI provider
+- `API_CACHE_MAX_ENTRIES` (default `512`): max in-memory cache key count in provider
+- `API_RESPONSE_CACHE_MAX_AGE` (default `60`): HTTP `Cache-Control` max-age for GET API responses
+- `API_SERVER_REVALIDATE_SECONDS` (default `60`): Next.js server-side `fetch` revalidate window
+- `NEXT_PUBLIC_API_CLIENT_CACHE_TTL_MS` (default `15000`): browser-side GET response TTL for `frontend/lib/api.ts`
+
 ## Worklog Protocol
 
 Every completed API module and page module must append one entry into `WORKLOG.md`:

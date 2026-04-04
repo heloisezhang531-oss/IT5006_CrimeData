@@ -1,4 +1,4 @@
-import json
+﻿import json
 from urllib.request import urlopen
 
 import pandas as pd
@@ -19,10 +19,25 @@ try:
 except Exception:  # pragma: no cover - fallback when requests is unavailable
     requests = None
 
+
+def _cache_data(*args, **kwargs):
+    try:
+        runtime = getattr(st, "runtime", None)
+        if runtime is not None and runtime.exists():
+            return st.cache_data(*args, **kwargs)
+    except Exception:
+        pass
+
+    def _decorator(func):
+        return func
+
+    return _decorator
+
+
 # Common date filter clause
 DATE_FILTER = "year >= 2015 AND year <= 2024"
 
-@st.cache_data(ttl=36000)
+@_cache_data(ttl=36000)
 def get_total_records(_engine):
     """Fetches the total number of records in the chicago_crimes table for 2015-2024."""
     try:
@@ -34,7 +49,7 @@ def get_total_records(_engine):
         st.error(f"Error fetching total records: {e}")
         return 0
 
-@st.cache_data(ttl=36000)
+@_cache_data(ttl=36000)
 def get_missing_values_summary(_engine):
     """
     Approximates missing values for key columns. 
@@ -75,7 +90,7 @@ def get_missing_values_summary(_engine):
         st.error(f"Error fetching missing values: {e}")
         return pd.DataFrame()
 
-@st.cache_data(ttl=36000)
+@_cache_data(ttl=36000)
 def get_arrest_domestic_stats(_engine):
     """Fetches counts for Arrest and Domestic columns."""
     stats = {}
@@ -100,7 +115,7 @@ def get_arrest_domestic_stats(_engine):
         st.error(f"Error fetching arrest/domestic stats: {e}")
         return {'arrest': pd.DataFrame(), 'domestic': pd.DataFrame()}
 
-@st.cache_data(ttl=36000)
+@_cache_data(ttl=36000)
 def get_yearly_trends(_engine):
     """Fetches crime counts grouped by year."""
     try:
@@ -112,7 +127,7 @@ def get_yearly_trends(_engine):
         st.error(f"Error fetching yearly trends: {e}")
         return pd.DataFrame()
 
-@st.cache_data(ttl=36000)
+@_cache_data(ttl=36000)
 def get_monthly_trends(_engine):
     """Fetches crime counts grouped by month (across all years)."""
     try:
@@ -124,7 +139,7 @@ def get_monthly_trends(_engine):
         st.error(f"Error fetching monthly trends: {e}")
         return pd.DataFrame()
 
-@st.cache_data(ttl=36000)
+@_cache_data(ttl=36000)
 def get_day_of_week_counts(_engine):
      """Fetches crime counts grouped by Day of Week."""
      try:
@@ -148,7 +163,7 @@ def get_day_of_week_counts(_engine):
         st.error(f"Error fetching day of week trends: {e}")
         return pd.DataFrame()
 
-@st.cache_data(ttl=36000)
+@_cache_data(ttl=36000)
 def get_heatmap_data(_engine):
     """Fetches crime counts grouped by Day of Week and Hour."""
     try:
@@ -176,7 +191,7 @@ def get_heatmap_data(_engine):
         st.error(f"Error fetching heatmap data: {e}")
         return pd.DataFrame()
 
-@st.cache_data(ttl=36000)
+@_cache_data(ttl=36000)
 def get_top_crime_types_stacked(_engine, limit=10):
     """Fetches top N primary crime types, broken down by arrest status."""
     try:
@@ -207,7 +222,7 @@ def get_top_crime_types_stacked(_engine, limit=10):
         st.error(f"Error fetching top crime types: {e}")
         return pd.DataFrame()
 
-@st.cache_data(ttl=36000)
+@_cache_data(ttl=36000)
 def get_top_locations_stacked(_engine, limit=10):
     """Fetches top N locations, broken down by arrest status."""
     try:
@@ -237,7 +252,7 @@ def get_top_locations_stacked(_engine, limit=10):
         st.error(f"Error fetching top locations: {e}")
         return pd.DataFrame()
 
-@st.cache_data(ttl=36000)
+@_cache_data(ttl=36000)
 def get_crime_location_heatmap(_engine, top_types, top_locations):
     """Fetches heatmap data for Top Crimes vs Top Locations."""
     try:
@@ -268,7 +283,7 @@ def get_crime_location_heatmap(_engine, top_types, top_locations):
         st.error(f"Error fetching crime-location heatmap: {e}")
         return pd.DataFrame()
 
-@st.cache_data(ttl=36000)
+@_cache_data(ttl=36000)
 def get_top_crime_types_yearly(_engine, limit=10):
     """Fetches yearly counts for crime types. If limit is None, fetches all."""
     try:
@@ -301,7 +316,7 @@ def get_top_crime_types_yearly(_engine, limit=10):
         st.error(f"Error fetching crime types yearly trends: {e}")
         return pd.DataFrame()
 
-@st.cache_data(ttl=36000)
+@_cache_data(ttl=36000)
 def get_recent_data(_engine, limit=1000):
     """Fetches a sample of recent data."""
     try:
@@ -316,7 +331,7 @@ def get_recent_data(_engine, limit=1000):
         st.error(f"Error fetching recent data: {e}")
         return pd.DataFrame()
 
-@st.cache_data(ttl=36000)
+@_cache_data(ttl=36000)
 def get_map_data(_engine,selected_year, limit=100000):
     """Fetches latitude and longitude for a sample of crimes."""
     #Show data group by the years - zyh 2026.02.10
@@ -345,7 +360,7 @@ def get_geojson1():
         st.error(f"GeoJSON Error: {e}")
         return None
 
-@st.cache_data(ttl=36000)
+@_cache_data(ttl=36000)
 def draw_choropleth(_engine, selected_year, limit=100000):
     """
     Draw choropleth map for crimes by community area.
@@ -373,12 +388,12 @@ def draw_choropleth(_engine, selected_year, limit=100000):
             # Sort by area (asc) and count (desc)
             df_detail = df_detail.sort_values(['community_area', 'type_count'], ascending=[True, False])
             
-            # Take top 5
-            df_top5 = df_detail.groupby('community_area').head(5)
-            
+            # Take top 5 and materialize a copy before mutation to avoid chained-assignment warnings
+            df_top5 = df_detail.groupby('community_area').head(5).copy()
+
             # Create formatted string like "Theft (500)<br>Battery (300)..."
             # Using <br> for HTML tooltip if supported, or comma separated
-            df_top5['formatted'] = df_top5.apply(lambda x: f"{x['primary_type']} ({x['type_count']})", axis=1)
+            df_top5['formatted'] = df_top5['primary_type'].astype(str) + " (" + df_top5['type_count'].astype(str) + ")"
             
             df_str = df_top5.groupby('community_area')['formatted'].apply(lambda x: '<br>'.join(x)).reset_index(name='top_types')
             
@@ -415,3 +430,4 @@ def draw_choropleth(_engine, selected_year, limit=100000):
     except Exception as e:
         st.error(f"Error fetching choropleth data: {e}")
         return pd.DataFrame()
+
