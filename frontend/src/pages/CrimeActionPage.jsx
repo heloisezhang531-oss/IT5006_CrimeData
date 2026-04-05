@@ -120,31 +120,29 @@ export default function CrimeActionPage() {
       <section className="card raw-table-card">
         <div className="card-header">
           <h3>Raw Data Table (from TiDB)</h3>
-          <p>Latest 200 records</p>
+          <p>Table: chicago_processed_data (latest 200 records)</p>
         </div>
         <div className="table-wrapper">
           <table>
             <thead>
               <tr>
-                <th>ID</th>
-                <th>Date</th>
-                <th>Primary Type</th>
-                <th>Description</th>
-                <th>Community</th>
-                <th>Arrest</th>
-                <th>Domestic</th>
+                <th>community_area</th>
+                <th>month</th>
+                <th>count_t1</th>
+                <th>arrest_rate</th>
+                <th>hardship_index</th>
+                <th>spatial_lag_crime_lag1</th>
               </tr>
             </thead>
             <tbody>
               {rawData.data.map((row) => (
-                <tr key={`${row.id}-${row.date}`}>
-                  <td>{row.id}</td>
-                  <td>{row.date}</td>
-                  <td>{row.primary_type}</td>
-                  <td>{row.description}</td>
+                <tr key={`${row.community_area}-${row.month}`}>
                   <td>{row.community_area}</td>
-                  <td>{String(row.arrest)}</td>
-                  <td>{String(row.domestic)}</td>
+                  <td>{row.month}</td>
+                  <td>{row.count_t1}</td>
+                  <td>{row.arrest_rate}</td>
+                  <td>{row.hardship_index}</td>
+                  <td>{row.spatial_lag_crime_lag1}</td>
                 </tr>
               ))}
             </tbody>

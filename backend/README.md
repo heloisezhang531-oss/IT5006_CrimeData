@@ -30,3 +30,7 @@ APIs used by frontend:
 - `/api/crime/raw-data`
 - `/api/model/metrics`
 - `/api/model/feature-importance`
+
+Notes:
+- `/api/crime/raw-data` reads from TiDB table `chicago_processed_data` and returns:
+  `community_area, month, count_t1, arrest_rate, hardship_index, spatial_lag_crime_lag1`.

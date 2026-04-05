@@ -161,19 +161,18 @@ def current_month_top10_primary_type() -> dict[str, Any]:
 
 @app.get("/api/crime/raw-data")
 def raw_data(limit: int = Query(default=200, ge=1, le=2000)) -> dict[str, Any]:
-    engine, table = _get_engine_and_table()
+    engine, _ = _get_engine_and_table()
     query = text(
-        f"""
+        """
         SELECT
-            `ID` AS id,
-            `DATE` AS date,
-            `PRIMARY_TYPE` AS primary_type,
-            `DESCRIPTION` AS description,
-            `COMMUNITY_AREA` AS community_area,
-            `ARREST` AS arrest,
-            `DOMESTIC` AS domestic
-        FROM `{table}`
-        ORDER BY `DATE` DESC
+            `community_area` AS community_area,
+            `month` AS month,
+            `count_t1` AS count_t1,
+            `arrest_rate` AS arrest_rate,
+            `hardship_index` AS hardship_index,
+            `spatial_lag_crime_lag1` AS spatial_lag_crime_lag1
+        FROM `chicago_processed_data`
+        ORDER BY `month` DESC, `community_area` ASC
         LIMIT :limit
         """
     )
