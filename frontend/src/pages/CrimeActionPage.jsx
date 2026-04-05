@@ -15,20 +15,34 @@ export default function CrimeActionPage() {
   const [trend, setTrend] = useState({ data: [] })
   const [topTypes, setTopTypes] = useState({ month_start: null, data: [] })
   const [rawData, setRawData] = useState({ data: [] })
+  const [errors, setErrors] = useState([])
 
   useEffect(() => {
-    Promise.all([
+    Promise.allSettled([
       fetchCurrentMonthCommunity(),
       fetchPredictedRisk(),
       fetchTenYearTrend(),
       fetchTop10PrimaryType(),
       fetchRawData(200),
-    ]).then(([a, b, c, d, e]) => {
-      setCommunityDist(a)
-      setRiskDist(b)
-      setTrend(c)
-      setTopTypes(d)
-      setRawData(e)
+    ]).then((results) => {
+      const nextErrors = []
+
+      if (results[0].status === 'fulfilled') setCommunityDist(results[0].value)
+      else nextErrors.push('Current Month Crime Count 数据加载失败')
+
+      if (results[1].status === 'fulfilled') setRiskDist(results[1].value)
+      else nextErrors.push('Predicted High-Risk 数据加载失败')
+
+      if (results[2].status === 'fulfilled') setTrend(results[2].value)
+      else nextErrors.push('10-Year Trend 数据加载失败')
+
+      if (results[3].status === 'fulfilled') setTopTypes(results[3].value)
+      else nextErrors.push('Top 10 Primary Type 数据加载失败')
+
+      if (results[4].status === 'fulfilled') setRawData(results[4].value)
+      else nextErrors.push('Raw Data Table 数据加载失败')
+
+      setErrors(nextErrors)
     })
   }, [])
 
@@ -39,6 +53,13 @@ export default function CrimeActionPage() {
     <div className="page">
       <h2>Crime Action</h2>
       <p className="subtitle">Current situation + next-month risk + historical trend + raw TiDB data.</p>
+      {errors.length > 0 ? (
+        <div className="warning-box">
+          {errors.map((msg) => (
+            <p key={msg}>{msg}</p>
+          ))}
+        </div>
+      ) : null}
 
       <div className="chart-grid">
         <ChartCard
