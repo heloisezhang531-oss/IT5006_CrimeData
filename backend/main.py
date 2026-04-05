@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import sys
 from typing import Any
 
 import pandas as pd
@@ -9,9 +10,11 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
-from tidb_utils import create_tidb_engine, resolve_chicago_table_name
-
 ROOT_DIR = Path(__file__).resolve().parents[1]
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+from tidb_utils import create_tidb_engine, resolve_chicago_table_name
 HOLDOUT_PRED_PATH = ROOT_DIR / "experiment/new_cross_validation/reports/holdout_2025_predictions_xgboost.csv"
 METRICS_PATH = ROOT_DIR / "experiment/new_ablation_shap/reports/with_hardship_metrics.csv"
 FEATURE_IMPORTANCE_PATH = ROOT_DIR / "experiment/new_ablation_shap/reports/shap_global_importance.csv"

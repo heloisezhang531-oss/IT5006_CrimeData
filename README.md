@@ -41,3 +41,11 @@ cp .env.example .env
 # then fill TiDB credentials in .env
 ```
 
+
+
+### Run backend API quickly
+
+```bash
+pip install -r backend/requirements.txt
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+```
