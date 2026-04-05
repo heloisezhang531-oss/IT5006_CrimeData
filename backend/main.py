@@ -32,14 +32,20 @@ _engine = None
 _table = None
 
 
-def _get_engine_and_table():
-    global _engine, _table
+def _get_engine():
+    global _engine
     if _engine is None:
         env_path = ROOT_DIR / ".env"
         _engine = create_tidb_engine(env_file=str(env_path) if env_path.exists() else None)
+    return _engine
+
+
+def _get_engine_and_table():
+    global _table
+    engine = _get_engine()
     if _table is None:
-        _table = resolve_chicago_table_name(_engine)
-    return _engine, _table
+        _table = resolve_chicago_table_name(engine)
+    return engine, _table
 
 
 def _to_records(df: pd.DataFrame) -> list[dict[str, Any]]:
@@ -161,7 +167,7 @@ def current_month_top10_primary_type() -> dict[str, Any]:
 
 @app.get("/api/crime/raw-data")
 def raw_data(limit: int = Query(default=200, ge=1, le=2000)) -> dict[str, Any]:
-    engine, _ = _get_engine_and_table()
+    engine = _get_engine()
     query = text(
         """
         SELECT

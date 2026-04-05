@@ -34,3 +34,11 @@ APIs used by frontend:
 Notes:
 - `/api/crime/raw-data` reads from TiDB table `chicago_processed_data` and returns:
   `community_area, month, count_t1, arrest_rate, hardship_index, spatial_lag_crime_lag1`.
+
+## Troubleshooting: TiDB data not loading
+
+1. Ensure `.env` exists (copy from `.env.example`) and all TiDB fields are filled.
+2. Verify table existence in TiDB:
+   - `chicago_processed_data` (used by `/api/crime/raw-data`)
+   - `chicago_crimes` or `chicago_crime` (used by crime charts endpoints)
+3. Check backend logs for SQL/auth errors (invalid creds / SSL CA path / table not found).
