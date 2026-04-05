@@ -15,3 +15,14 @@ A simple Streamlit app showing an internal tool that lets you manage, and visual
    ```
    $ streamlit run streamlit_app.py
    ```
+
+## Frontend/Backend split dashboard (Milestone 3)
+
+This repository now also contains:
+- `backend/`: FastAPI service for TiDB queries and model-report endpoints.
+- `frontend/`: Vite + React dashboard (runs on port `3000`) with only two pages:
+  1. Crime Action
+  2. Model Lab
+
+See `backend/README.md` and `frontend/README.md` for start commands.
+
