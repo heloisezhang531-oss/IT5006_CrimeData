@@ -9,7 +9,6 @@ export const metadata: Metadata = {
 };
 
 const nav = [
-  ["Launch", "/launch"],
   ["Strategic", "/strategic"],
   ["Operations", "/operations"],
   ["Crime Action", "/crime-action"],

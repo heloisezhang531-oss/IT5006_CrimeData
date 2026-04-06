@@ -5,7 +5,6 @@ summary.md
 *.png
 *.docx
 *.doc
-*.txt
 *.zip
 docs/
 
@@ -191,3 +190,6 @@ frontend/playwright-report/
 # keep Next.js source library tracked
 !frontend/lib/
 !frontend/lib/*.ts
+!frontend/public/
+!frontend/public/report-figures/
+!frontend/public/report-figures/*.png

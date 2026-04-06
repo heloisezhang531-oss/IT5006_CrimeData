@@ -2,8 +2,7 @@
 import path from 'path';
 
 const pages = [
-  { path: '/', checks: ['Predictive Public Safety Intelligence', 'Backend health'] },
-  { path: '/launch', checks: ['Launch Keynote Mode', 'Predictive Public Safety'] },
+  { path: '/', checks: ['Launch Keynote Mode', 'Predictive Public Safety: From Spatial Evidence', 'Backend health'] },
   { path: '/strategic', checks: ['Chicago Crime EDA Alignment', 'Annual Crime Trend (2015-2024)'] },
   { path: '/operations', checks: ['Geographical Distribution', 'Community Choropleth (Left)'] },
   { path: '/crime-action', checks: ['Categorical Analysis', 'Top 10 Crime Types (Arrest Breakdown)'] },

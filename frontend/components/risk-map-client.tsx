@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import type { RiskPoint } from "./risk-map";
 
 const CHICAGO_CENTER: [number, number] = [41.8781, -87.6298];
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8000/api";
 
 function colorByRisk(risk: string): string {
   if (risk === "high") return "#ef4444";
@@ -12,10 +13,32 @@ function colorByRisk(risk: string): string {
   return "#22c55e";
 }
 
-function pseudoLatLng(area: number): [number, number] {
-  const lat = CHICAGO_CENTER[0] + ((area % 7) - 3) * 0.015;
-  const lng = CHICAGO_CENTER[1] + ((area % 11) - 5) * 0.02;
-  return [lat, lng];
+function collectLngLatPairs(node: unknown, out: Array<[number, number]>): void {
+  if (!Array.isArray(node)) return;
+  if (node.length >= 2 && typeof node[0] === "number" && typeof node[1] === "number") {
+    out.push([node[0], node[1]]);
+    return;
+  }
+  node.forEach((child) => collectLngLatPairs(child, out));
+}
+
+function geometryCenter(geometry: unknown): [number, number] | null {
+  if (!geometry || typeof geometry !== "object") return null;
+  const coords = (geometry as { coordinates?: unknown }).coordinates;
+  const pairs: Array<[number, number]> = [];
+  collectLngLatPairs(coords, pairs);
+  if (!pairs.length) return null;
+  let minLng = Number.POSITIVE_INFINITY;
+  let maxLng = Number.NEGATIVE_INFINITY;
+  let minLat = Number.POSITIVE_INFINITY;
+  let maxLat = Number.NEGATIVE_INFINITY;
+  pairs.forEach(([lng, lat]) => {
+    minLng = Math.min(minLng, lng);
+    maxLng = Math.max(maxLng, lng);
+    minLat = Math.min(minLat, lat);
+    maxLat = Math.max(maxLat, lat);
+  });
+  return [(minLat + maxLat) / 2, (minLng + maxLng) / 2];
 }
 
 export function RiskMapClient({ points }: { points: RiskPoint[] }) {
@@ -23,6 +46,38 @@ export function RiskMapClient({ points }: { points: RiskPoint[] }) {
   const mapRef = useRef<L.Map | null>(null);
   const markerLayerRef = useRef<L.LayerGroup | null>(null);
   const resizeCleanupRef = useRef<(() => void) | null>(null);
+  const [centroids, setCentroids] = useState<Record<string, [number, number]>>({});
+
+  useEffect(() => {
+    let cancelled = false;
+    const run = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/eda/geography/community-geojson`, { cache: "force-cache" });
+        if (!res.ok) return;
+        const payload = (await res.json()) as {
+          data?: Array<{ geojson?: { features?: Array<{ properties?: Record<string, unknown>; geometry?: unknown }> } }>;
+        };
+        const featureRows = payload.data?.[0]?.geojson?.features ?? [];
+        const next: Record<string, [number, number]> = {};
+        featureRows.forEach((feature) => {
+          const area = feature?.properties?.area_numbe;
+          if (area === null || area === undefined) return;
+          const center = geometryCenter(feature.geometry);
+          if (!center) return;
+          next[String(Number(area))] = center;
+        });
+        if (!cancelled && Object.keys(next).length > 0) {
+          setCentroids(next);
+        }
+      } catch {
+        // Keep map functional even when geojson endpoint is temporarily unavailable.
+      }
+    };
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -74,7 +129,10 @@ export function RiskMapClient({ points }: { points: RiskPoint[] }) {
     const latLngs: L.LatLngExpression[] = [];
 
     points.forEach((point) => {
-      const [lat, lng] = pseudoLatLng(Number(point.community_area));
+      const area = String(Number(point.community_area));
+      const center = centroids[area];
+      if (!center) return;
+      const [lat, lng] = center;
       latLngs.push([lat, lng]);
 
       const probability = Number(point.pred_prob ?? 0);
@@ -99,7 +157,7 @@ export function RiskMapClient({ points }: { points: RiskPoint[] }) {
     } else {
       map.setView(CHICAGO_CENTER, 9.5);
     }
-  }, [points]);
+  }, [points, centroids]);
 
   return (
     <div className="h-[420px] w-full overflow-hidden rounded-2xl border border-slate-200 bg-white">

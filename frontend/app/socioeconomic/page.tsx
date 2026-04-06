@@ -37,6 +37,24 @@ export default async function SocioeconomicPage() {
         conclusion="Context signal: structurally vulnerable communities tend to carry persistently higher modeled risk, supporting prevention-oriented planning."
       />
 
+      <GlassPanel className="space-y-4">
+        <p className="story-subtitle">Report Story | Phase2 §4.6</p>
+        <div className="grid gap-5 xl:grid-cols-[1.2fr_1fr] xl:items-center">
+          <div>
+            <h2 className="text-2xl font-semibold text-slate-900">Hardship Story: Context Features Add Operational Meaning</h2>
+            <p className="mt-2 text-sm text-slate-600">
+              This panel mirrors the report's hardship argument: predicted risk should be read together with structural deprivation context
+              so resources can blend enforcement and prevention.
+            </p>
+          </div>
+          <img
+            src="/report-figures/socio-risk-map.png"
+            alt="Socioeconomic risk map snapshot"
+            className="h-56 w-full rounded-2xl border border-slate-200 object-cover"
+          />
+        </div>
+      </GlassPanel>
+
       <GlassPanel>
         <h2 className="mb-4 text-lg font-semibold">Predicted Risk Map with Hardship Overlay</h2>
         <RiskMap points={map.data as any} />

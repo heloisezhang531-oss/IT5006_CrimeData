@@ -80,6 +80,29 @@ export default async function StrategicPage() {
         conclusion="Baseline EDA signal: long-run burden is persistent with clear seasonality and time-window concentration."
       />
 
+      <GlassPanel className="space-y-4">
+        <p className="story-subtitle">Report Story | Phase1 §2-§3</p>
+        <div className="grid gap-5 xl:grid-cols-[1.2fr_1fr] xl:items-center">
+          <div>
+            <h2 className="text-2xl font-semibold text-slate-900">EDA Story I: Space-Time Concentration Is Stable Enough for Forecasting</h2>
+            <p className="mt-2 text-sm text-slate-600">
+              This section keeps the same evidence chain used in the report: annual burden persistence, seasonal monthly structure, and
+              hour-day concentration windows.
+            </p>
+            <ul className="mt-3 space-y-2 text-sm text-slate-700">
+              <li>Yearly trend anchors long-run baseline pressure.</li>
+              <li>Monthly and weekday splits expose recurring operational windows.</li>
+              <li>Hour-day heatmap supports shift-level deployment planning.</li>
+            </ul>
+          </div>
+          <img
+            src="/report-figures/strategic-eda.png"
+            alt="Strategic EDA snapshot"
+            className="h-56 w-full rounded-2xl border border-slate-200 object-cover"
+          />
+        </div>
+      </GlassPanel>
+
       <div className="grid gap-6 xl:grid-cols-2">
         <GlassPanel>
           <h2 className="mb-4 text-lg font-semibold">Dataset Overview</h2>

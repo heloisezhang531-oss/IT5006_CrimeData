@@ -29,6 +29,27 @@ export default async function ModelLabPage() {
         conclusion="Scientific signal: hardship context improves nonlinear models, but cross-system generalization still needs explicit adaptation."
       />
 
+      <GlassPanel className="space-y-4">
+        <p className="story-subtitle">Report Story | Phase2 §4.6-§4.7</p>
+        <h2 className="text-2xl font-semibold text-slate-900">Model Story: Why Hardship Helps and Where Transfer Breaks</h2>
+        <p className="text-sm text-slate-600">
+          We place the report's modeling storyline directly in this page: hardship feature lift is visible in feature importance and global SHAP
+          patterns, while external transfer still needs dedicated calibration.
+        </p>
+        <div className="grid gap-4 md:grid-cols-2">
+          <img
+            src="/report-figures/model-shap-bar.png"
+            alt="SHAP feature importance summary bar"
+            className="h-52 w-full rounded-2xl border border-slate-200 bg-white object-contain p-2"
+          />
+          <img
+            src="/report-figures/model-shap-beeswarm.png"
+            alt="SHAP beeswarm summary"
+            className="h-52 w-full rounded-2xl border border-slate-200 bg-white object-contain p-2"
+          />
+        </div>
+      </GlassPanel>
+
       <GlassPanel>
         <h2 className="mb-4 text-lg font-semibold">Hardship Ablation (With vs Without)</h2>
         <DumbbellCard

@@ -25,6 +25,24 @@ export default async function OperationsPage() {
         conclusion="Geo signal: compare community burden between years while preserving point-level spatial intuition."
       />
 
+      <GlassPanel className="space-y-4">
+        <p className="story-subtitle">Report Story | Phase1 §3</p>
+        <div className="grid gap-5 xl:grid-cols-[1.2fr_1fr] xl:items-center">
+          <div>
+            <h2 className="text-2xl font-semibold text-slate-900">EDA Story: Spatial Burden Is Clustered and Policy-Relevant</h2>
+            <p className="mt-2 text-sm text-slate-600">
+              This map-first page carries the report's spatial story into operations: community-level differences are persistent and should
+              be compared year-over-year, not read as isolated snapshots.
+            </p>
+          </div>
+          <img
+            src="/report-figures/operations-geo.png"
+            alt="Operations geographic snapshot"
+            className="h-56 w-full rounded-2xl border border-slate-200 object-cover"
+          />
+        </div>
+      </GlassPanel>
+
       <GlassPanel>
         <GeoDistribution years={years} />
       </GlassPanel>

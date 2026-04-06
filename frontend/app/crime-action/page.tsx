@@ -52,6 +52,24 @@ export default async function CrimeActionPage() {
         conclusion="Category signal: Theft/Battery and Street/Residence concentration should drive focused intervention playbooks."
       />
 
+      <GlassPanel className="space-y-4">
+        <p className="story-subtitle">Report Story | Phase1 §4-§6</p>
+        <div className="grid gap-5 xl:grid-cols-[1.2fr_1fr] xl:items-center">
+          <div>
+            <h2 className="text-2xl font-semibold text-slate-900">EDA Story II: Crime Mix and Domestic Burden Need Stratified Actions</h2>
+            <p className="mt-2 text-sm text-slate-600">
+              The report-level narrative is mapped here as offense-type and location-type intersections, so interventions can be matched to
+              specific crime-context combinations rather than one uniform response.
+            </p>
+          </div>
+          <img
+            src="/report-figures/crime-action-categorical.png"
+            alt="Crime action categorical snapshot"
+            className="h-56 w-full rounded-2xl border border-slate-200 object-cover"
+          />
+        </div>
+      </GlassPanel>
+
       <div className="grid gap-6 xl:grid-cols-2">
         <GlassPanel>
           <h2 className="mb-4 text-lg font-semibold">Top 10 Crime Types (Arrest Breakdown)</h2>
