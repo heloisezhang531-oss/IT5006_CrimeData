@@ -15,7 +15,7 @@ def mom_count_change():
 
 @router.get("/mom-composition-change")
 def mom_composition_change():
-    return provider.fetch("anomaly_mom_composition_change", svc.anomaly_mom_composition_change)
+    return provider.fetch("anomaly_mom_composition_change_2025_top10", svc.anomaly_mom_composition_change)
 
 
 @router.get("/observed-vs-predicted")

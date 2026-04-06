@@ -12,12 +12,14 @@ export function PageHero({
   conclusion?: string;
 }) {
   return (
-    <section className="mb-10 space-y-3">
-      <p className="section-subtitle">{eyebrow}</p>
+    <section className="glass-card mb-8 space-y-4 p-6 md:mb-10 md:p-8">
+      <span className="inline-flex border border-machine-yellow/35 px-3 py-1 text-[10px] uppercase tracking-[0.22em] text-machine-yellow">
+        {eyebrow}
+      </span>
       <h1 className="section-title">{title}</h1>
-      <p className="max-w-3xl text-base text-slate-600 md:text-lg">{description}</p>
+      <p className="max-w-4xl text-sm text-zinc-400 md:text-base">{description}</p>
       {conclusion ? (
-        <p className="inline-flex rounded-full border border-sky-200 bg-sky-50 px-4 py-2 text-sm font-medium text-sky-700">
+        <p className="inline-flex border border-machine-yellow/35 bg-machine-yellow/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-machine-yellow">
           {conclusion}
         </p>
       ) : null}
@@ -26,12 +28,12 @@ export function PageHero({
 }
 
 export function GlassPanel({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={`glass p-6 ${className ?? ""}`}>{children}</div>;
+  return <div className={`glass-card p-6 md:p-7 ${className ?? ""}`}>{children}</div>;
 }
 
 export function InsightPill({ label }: { label: string }) {
   return (
-    <span className="inline-flex items-center rounded-full border border-slate-200 bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-slate-600">
+    <span className="inline-flex items-center border border-machine-yellow/35 bg-machine-yellow/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-machine-yellow">
       {label}
     </span>
   );
@@ -47,22 +49,22 @@ export function EvidencePanel({
   children: ReactNode;
 }) {
   return (
-    <details className="group rounded-2xl border border-slate-200/80 bg-white/70">
+    <details className="group border border-machine-yellow/20 bg-void/55">
       <summary className="cursor-pointer list-none px-4 py-3">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-sm font-semibold text-slate-800">{title}</p>
-            <p className="text-xs text-slate-500">{summary}</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.14em] text-system-white">{title}</p>
+            <p className="text-xs text-zinc-500">{summary}</p>
           </div>
-          <span className="text-xs font-semibold uppercase tracking-[0.12em] text-sky-700 group-open:hidden">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-machine-yellow group-open:hidden">
             Expand Evidence
           </span>
-          <span className="hidden text-xs font-semibold uppercase tracking-[0.12em] text-sky-700 group-open:inline">
+          <span className="hidden text-[10px] font-semibold uppercase tracking-[0.16em] text-machine-yellow group-open:inline">
             Hide Evidence
           </span>
         </div>
       </summary>
-      <div className="px-4 pb-4">{children}</div>
+      <div className="border-t border-machine-yellow/20 px-4 pb-4 pt-4">{children}</div>
     </details>
   );
 }

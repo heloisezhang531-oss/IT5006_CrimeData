@@ -8,6 +8,10 @@ module.exports = {
     extend: {
       colors: {
         ink: "#0f172a",
+        "machine-yellow": "#facc15",
+        "threat-red": "#ef4444",
+        "system-white": "#f8fafc",
+        void: "#050505",
       },
       boxShadow: {
         glass: "0 10px 40px rgba(15, 23, 42, 0.18)",

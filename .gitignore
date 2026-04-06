@@ -6,6 +6,7 @@ summary.md
 *.doc
 *.zip
 docs/
+output/
 
 
 # Byte-compiled / optimized / DLL files

@@ -6,13 +6,10 @@ const pages = [
   { path: '/strategic', checks: ['Chicago Crime EDA Alignment', 'Annual Crime Trend (2015-2024)'] },
   { path: '/operations', checks: ['Geographical Distribution', 'Community Choropleth (Left)'] },
   { path: '/crime-action', checks: ['Categorical Analysis', 'Top 10 Crime Types (Arrest Breakdown)'] },
-  { path: '/raw-data', checks: ['Raw Data Sample (2015-2024)', 'Rows loaded'] },
-  { path: '/victim-risk', checks: ['Victim Risk Profiling Dashboard', 'Victim Age Range'] },
-  { path: '/anomaly', checks: ['Detect Unexpected Change Before It Spreads', 'Observed Crime vs Predicted Crime (Error Proxy)'] },
+  { path: '/anomaly', checks: ['Monitor 2025 Prediction Consistency and Composition Drift', 'Actual vs Predicted High-Risk Area Counts'] },
   { path: '/socioeconomic', checks: ['Socioeconomic Context Monitoring', 'Predicted Risk Map with Hardship Overlay'] },
   { path: '/performance', checks: ['Performance & Accountability', 'Predicted Hotspot vs Actual Hotspot'] },
   { path: '/command-center', checks: ['Command Center', 'Map: Predicted Next-Month Risk by Region'] },
-  { path: '/model-lab', checks: ['Model Lab', 'Hardship Ablation (With vs Without)'] },
 ];
 
 function normalize(route: string): string {

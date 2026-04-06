@@ -3,7 +3,6 @@ from __future__ import annotations
 from fastapi import APIRouter, Query
 
 from backend.app.api.deps import provider
-from backend.app.schemas.common import VictimDashboardRequest
 from backend.app.services import eda_service as svc
 
 router = APIRouter(prefix="/eda", tags=["eda"])
@@ -101,32 +100,3 @@ def categorical_crime_location_heatmap(limit: int = Query(default=10, ge=1, le=5
         lambda engine, table: svc.categorical_crime_location_heatmap(engine, table, limit=limit),
     )
 
-
-@router.get("/raw/recent")
-def raw_recent(limit: int = Query(default=1000, ge=1, le=5000)):
-    key = f"eda_raw_recent_{limit}"
-    return provider.fetch(key, lambda engine, table: svc.raw_recent(engine, table, limit=limit))
-
-
-@router.get("/victim/filters")
-def victim_filters():
-    return provider.fetch("eda_victim_filters", svc.victim_filters)
-
-
-@router.post("/victim/dashboard")
-def victim_dashboard(payload: VictimDashboardRequest):
-    offense_key = "-".join(sorted(payload.offense_categories)) or "all"
-    age_key = f"{payload.age_min or 'na'}_{payload.age_max or 'na'}"
-    key = f"eda_victim_dashboard_{age_key}_{offense_key}_{payload.include_raw_sample}_{payload.raw_limit}"
-    return provider.fetch(
-        key,
-        lambda engine, table: svc.victim_dashboard(
-            engine,
-            table,
-            age_min=payload.age_min,
-            age_max=payload.age_max,
-            offense_categories=payload.offense_categories,
-            include_raw_sample=payload.include_raw_sample,
-            raw_limit=payload.raw_limit,
-        ),
-    )

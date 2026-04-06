@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import math
 from pathlib import Path
 from typing import Any
@@ -13,20 +12,20 @@ from backend.app.services.provider import df_payload, series_payload
 
 ROOT = Path(__file__).resolve().parents[3]
 HARDSHIP_PATH = ROOT / "Hardship Index of Chicago.csv"
-EXPERIMENT_ROOT = ROOT / "experiment"
-NIBRS_ROOT = ROOT / "model" / "NIRBS"
 
 
 def _load_hardship() -> pd.DataFrame:
     if not HARDSHIP_PATH.exists():
-        return pd.DataFrame(columns=["community_area", "hardship_2015_2019", "hardship_2020_2024"])
+        return pd.DataFrame(columns=["community_area", "community_name", "hardship_2015_2019", "hardship_2020_2024", "hardship_index"])
     raw = pd.read_csv(HARDSHIP_PATH)
     raw = raw[pd.to_numeric(raw.get("GEOID"), errors="coerce").notna()].copy()
     raw["community_area"] = raw["GEOID"].astype(int)
+    raw["community_name"] = raw.get("Name", "").astype(str).str.strip()
+    raw["community_name"] = raw["community_name"].replace("", np.nan)
     raw["hardship_2015_2019"] = pd.to_numeric(raw.get("HDX_2015-2019"), errors="coerce")
     raw["hardship_2020_2024"] = pd.to_numeric(raw.get("HDX_2020-2024"), errors="coerce")
     raw["hardship_index"] = raw[["hardship_2015_2019", "hardship_2020_2024"]].mean(axis=1)
-    return raw[["community_area", "hardship_2015_2019", "hardship_2020_2024", "hardship_index"]]
+    return raw[["community_area", "community_name", "hardship_2015_2019", "hardship_2020_2024", "hardship_index"]]
 
 
 def _mock_region_month() -> pd.DataFrame:
@@ -246,7 +245,8 @@ def operations_hour_count_type(engine, table: str) -> dict[str, Any]:
 def _risk_forecast_from_monthly(region_month: pd.DataFrame) -> pd.DataFrame:
     df = region_month.copy().sort_values(["community_area", "month"])
     hardship = _load_hardship()
-    df = df.merge(hardship[["community_area", "hardship_index"]], on="community_area", how="left")
+    df = df.merge(hardship[["community_area", "community_name", "hardship_index"]], on="community_area", how="left")
+    df["community_name"] = df["community_name"].fillna(df["community_area"].apply(lambda area: f"Community {int(area)}"))
     df["hardship_index"] = df["hardship_index"].fillna(df["hardship_index"].median() if df["hardship_index"].notna().any() else 50)
 
     grp = df.groupby("community_area", observed=True)["count_total"]
@@ -270,7 +270,9 @@ def _risk_forecast_from_monthly(region_month: pd.DataFrame) -> pd.DataFrame:
     df["pred_month"] = df["month"] + pd.offsets.MonthBegin(1)
 
     tgt = df[["community_area", "month", "count_total"]].rename(columns={"month": "pred_month", "count_total": "actual_count"})
-    pred = df[["community_area", "month", "pred_month", "pred_prob", "hardship_index"]].merge(tgt, on=["community_area", "pred_month"], how="left")
+    pred = df[["community_area", "community_name", "month", "pred_month", "pred_prob", "hardship_index"]].merge(
+        tgt, on=["community_area", "pred_month"], how="left"
+    )
     pred = pred.dropna(subset=["actual_count"]).copy()
 
     q75 = pred["actual_count"].quantile(0.75)
@@ -290,7 +292,9 @@ def model_predict_next_month(engine, table: str, target_month: str | None = None
         tm = pd.Period(target_month, freq="M").to_timestamp()
     else:
         tm = pred["pred_month"].max()
-    out = pred[pred["pred_month"] == tm][["community_area", "pred_month", "pred_prob", "pred_label", "risk_level", "hardship_index"]].copy()
+    out = pred[pred["pred_month"] == tm][
+        ["community_area", "community_name", "pred_month", "pred_prob", "pred_label", "risk_level", "hardship_index"]
+    ].copy()
     out["pred_month"] = out["pred_month"].dt.strftime("%Y-%m")
     return df_payload(out.sort_values("pred_prob", ascending=False).reset_index(drop=True), target_month=str(tm.date()))
 
@@ -342,15 +346,32 @@ def anomaly_mom_composition_change(engine, table: str) -> dict[str, Any]:
     types = _type_month(engine, table)
     if types.empty:
         return {"meta": {"rows": 0}, "data": []}
-    totals = types.groupby(["community_area", "month"], as_index=False)["type_count"].sum().rename(columns={"type_count": "month_total"})
-    share = types.merge(totals, on=["community_area", "month"], how="left")
-    share["type_share"] = np.where(share["month_total"] > 0, share["type_count"] / share["month_total"], 0.0)
-    share = share.sort_values(["community_area", "primary_type", "month"])
-    share["prev_share"] = share.groupby(["community_area", "primary_type"], observed=True)["type_share"].shift(1)
-    share["mom_share_change"] = share["type_share"] - share["prev_share"]
-    out = share.dropna(subset=["mom_share_change"])[["community_area", "month", "primary_type", "type_share", "mom_share_change"]]
+    # Aggregate to city-level monthly composition and keep only 2025 top-10 crime types.
+    monthly = types.groupby(["month", "primary_type"], as_index=False)["type_count"].sum()
+    monthly_2025 = monthly[monthly["month"].dt.year == 2025].copy()
+    if monthly_2025.empty:
+        return {"meta": {"rows": 0, "year": 2025}, "data": []}
+
+    top_types = (
+        monthly_2025.groupby("primary_type", as_index=False)["type_count"]
+        .sum()
+        .sort_values("type_count", ascending=False)
+        .head(10)["primary_type"]
+        .tolist()
+    )
+    monthly_top = monthly_2025[monthly_2025["primary_type"].isin(top_types)].copy()
+
+    month_totals = monthly_2025.groupby("month", as_index=False)["type_count"].sum().rename(columns={"type_count": "month_total"})
+    monthly_top = monthly_top.merge(month_totals, on="month", how="left")
+    monthly_top["type_share"] = np.where(monthly_top["month_total"] > 0, monthly_top["type_count"] / monthly_top["month_total"], 0.0)
+    monthly_top = monthly_top.sort_values(["primary_type", "month"])
+    monthly_top["prev_share"] = monthly_top.groupby("primary_type", observed=True)["type_share"].shift(1)
+    monthly_top["mom_share_change"] = monthly_top["type_share"] - monthly_top["prev_share"]
+
+    out = monthly_top.dropna(subset=["mom_share_change"])[["month", "primary_type", "type_count", "type_share", "mom_share_change"]].copy()
     out["month"] = out["month"].dt.strftime("%Y-%m")
-    return df_payload(out)
+    out = out.sort_values(["month", "primary_type"]).reset_index(drop=True)
+    return df_payload(out, year=2025, top_types=top_types)
 
 
 def anomaly_observed_vs_predicted(engine, table: str) -> dict[str, Any]:
@@ -424,63 +445,3 @@ def dashboard_command_center(engine, table: str) -> dict[str, Any]:
             }
         ],
     }
-
-
-def _read_json(path: Path) -> dict[str, Any] | None:
-    if not path.exists():
-        return None
-    try:
-        return json.loads(path.read_text(encoding="utf-8"))
-    except Exception:
-        return None
-
-
-def model_lab_ablation(_: Any, __: str) -> dict[str, Any]:
-    with_dir = EXPERIMENT_ROOT / "models" / "with_hardship"
-    without_dir = EXPERIMENT_ROOT / "models" / "without_hardship"
-    models = ["logistic_regression", "random_forest", "xgboost"]
-    rows = []
-    for m in models:
-        a = _read_json(with_dir / f"{m}_best_params.json")
-        b = _read_json(without_dir / f"{m}_best_params.json")
-        if not a or not b:
-            continue
-        aw = a.get("test_metrics", a.get("val_metrics", {}))
-        bw = b.get("test_metrics", b.get("val_metrics", {}))
-        rows.append(
-            {
-                "model": m,
-                "with_hardship_roc_auc": aw.get("roc_auc"),
-                "without_hardship_roc_auc": bw.get("roc_auc"),
-                "delta_roc_auc": (aw.get("roc_auc", 0) - bw.get("roc_auc", 0)),
-                "with_hardship_f1": aw.get("f1"),
-                "without_hardship_f1": bw.get("f1"),
-                "delta_f1": (aw.get("f1", 0) - bw.get("f1", 0)),
-            }
-        )
-    return series_payload(rows)
-
-
-def model_lab_generalization(_: Any, __: str) -> dict[str, Any]:
-    configs = []
-    for p in NIBRS_ROOT.rglob("*.json"):
-        if "zero_shot" in str(p).lower() or "drift" in str(p).lower() or "champion" in str(p).lower():
-            doc = _read_json(p)
-            if doc is None:
-                continue
-            configs.append({"file": str(p.relative_to(ROOT)), "content": doc})
-    return series_payload(configs)
-
-
-def model_lab_reliability(engine, table: str) -> dict[str, Any]:
-    region_perf = performance_by_region(engine, table).get("data", [])
-    if not region_perf:
-        return {"meta": {"rows": 0}, "data": []}
-    df = pd.DataFrame(region_perf)
-    df["reliability_band"] = pd.cut(df["accuracy"], bins=[-1, 0.65, 0.8, 2], labels=["weak", "medium", "strong"])
-    band = df.groupby("reliability_band", as_index=False, observed=False).agg(
-        regions=("community_area", "count"),
-        avg_accuracy=("accuracy", "mean"),
-        avg_recall=("recall", "mean"),
-    )
-    return df_payload(band)

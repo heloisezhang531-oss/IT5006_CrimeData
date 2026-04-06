@@ -11,7 +11,6 @@ from backend.app.api.routes import (
     eda,
     meta,
     model,
-    model_lab,
     operations,
     performance,
     socio,
@@ -63,6 +62,5 @@ app.include_router(anomaly.router, prefix=settings.api_prefix)
 app.include_router(socio.router, prefix=settings.api_prefix)
 app.include_router(performance.router, prefix=settings.api_prefix)
 app.include_router(model.router, prefix=settings.api_prefix)
-app.include_router(model_lab.router, prefix=settings.api_prefix)
 app.include_router(dashboard.router, prefix=settings.api_prefix)
 app.include_router(eda.router, prefix=settings.api_prefix)

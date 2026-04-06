@@ -8,14 +8,14 @@ const GeoDistributionClient = dynamic(
     ssr: false,
     loading: () => (
       <div className="grid gap-6">
-        <div className="h-[420px] rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
+        <div className="h-[420px] border border-machine-yellow/20 bg-void/55 p-4 text-xs uppercase tracking-[0.14em] text-zinc-500">
           Loading point map...
         </div>
         <div className="grid gap-4 xl:grid-cols-2">
-          <div className="h-[460px] rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
+          <div className="h-[460px] border border-machine-yellow/20 bg-void/55 p-4 text-xs uppercase tracking-[0.14em] text-zinc-500">
             Loading choropleth...
           </div>
-          <div className="h-[460px] rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
+          <div className="h-[460px] border border-machine-yellow/20 bg-void/55 p-4 text-xs uppercase tracking-[0.14em] text-zinc-500">
             Loading choropleth...
           </div>
         </div>

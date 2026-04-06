@@ -46,6 +46,17 @@ function normalizeCommunityArea(value: unknown): string {
   return String(Number(value));
 }
 
+function safeInvalidate(map: L.Map | null): void {
+  if (!map) return;
+  const internal = map as unknown as { _loaded?: boolean; _mapPane?: unknown };
+  if (!internal._loaded || !internal._mapPane) return;
+  try {
+    map.invalidateSize({ pan: false, debounceMoveend: true });
+  } catch {
+    // Ignore transient Leaflet lifecycle errors during unmount/remount.
+  }
+}
+
 export function GeoDistributionClient({ years }: { years: number[] }) {
   const defaultLeft = years[0] ?? 2015;
   const defaultRight = years[years.length - 1] ?? 2024;
@@ -74,8 +85,14 @@ export function GeoDistributionClient({ years }: { years: number[] }) {
   const hardshipPreview = useMemo(() => hardshipRows.slice(0, 12), [hardshipRows]);
 
   const bindResizeSync = (map: L.Map, container: HTMLDivElement) => {
-    const invalidate = () => map.invalidateSize({ pan: false, debounceMoveend: true });
-    requestAnimationFrame(invalidate);
+    let disposed = false;
+    let rafId: number | null = null;
+    const invalidate = () => {
+      if (disposed) return;
+      if (!container.isConnected) return;
+      safeInvalidate(map);
+    };
+    rafId = requestAnimationFrame(invalidate);
     const onWindowResize = () => invalidate();
     window.addEventListener("resize", onWindowResize);
     let observer: ResizeObserver | null = null;
@@ -84,6 +101,10 @@ export function GeoDistributionClient({ years }: { years: number[] }) {
       observer.observe(container);
     }
     return () => {
+      disposed = true;
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
       window.removeEventListener("resize", onWindowResize);
       observer?.disconnect();
     };
@@ -184,7 +205,7 @@ export function GeoDistributionClient({ years }: { years: number[] }) {
         marker.addTo(layer);
         latLngs.push([row.latitude, row.longitude]);
       });
-      map.invalidateSize({ pan: false, debounceMoveend: true });
+      safeInvalidate(map);
       if (latLngs.length > 1) {
         map.fitBounds(L.latLngBounds(latLngs).pad(0.15));
       } else {
@@ -201,7 +222,7 @@ export function GeoDistributionClient({ years }: { years: number[] }) {
   ) => {
     const geojson = geojsonRef.current;
     if (!map || !geojson) return;
-    map.invalidateSize({ pan: false, debounceMoveend: true });
+    safeInvalidate(map);
     if (layerRef.current) {
       map.removeLayer(layerRef.current);
       layerRef.current = null;
@@ -267,16 +288,16 @@ export function GeoDistributionClient({ years }: { years: number[] }) {
   return (
     <div className="space-y-6">
       {error ? (
-        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">{error}</p>
+        <p className="border border-threat-red/40 bg-threat-red/10 px-4 py-2 text-xs uppercase tracking-[0.14em] text-threat-red">{error}</p>
       ) : null}
 
-      <div className="rounded-2xl border border-slate-200 bg-white/80 p-4">
+      <div className="glass-card p-4">
         <div className="mb-3 flex items-center justify-between">
-          <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-600">
+          <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-machine-yellow">
             Crime Incident Points by Year
           </h3>
           <select
-            className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm"
+            className="border border-machine-yellow/30 bg-void/70 px-3 py-1.5 text-xs uppercase tracking-[0.1em] text-system-white"
             value={pointYear}
             onChange={(e) => setPointYear(Number(e.target.value))}
           >
@@ -287,19 +308,19 @@ export function GeoDistributionClient({ years }: { years: number[] }) {
             ))}
           </select>
         </div>
-        <div className="h-[420px] w-full overflow-hidden rounded-2xl border border-slate-200">
+        <div className="h-[420px] w-full overflow-hidden border border-machine-yellow/20">
           <div ref={pointContainerRef} className="h-full w-full" />
         </div>
       </div>
 
       <div className="grid gap-4 xl:grid-cols-2">
-        <div className="rounded-2xl border border-slate-200 bg-white/80 p-4">
+        <div className="glass-card p-4">
           <div className="mb-3 flex items-center justify-between">
-            <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-600">
+            <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-machine-yellow">
               Community Choropleth (Left)
             </h3>
             <select
-              className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm"
+              className="border border-machine-yellow/30 bg-void/70 px-3 py-1.5 text-xs uppercase tracking-[0.1em] text-system-white"
               value={leftYear}
               onChange={(e) => setLeftYear(Number(e.target.value))}
             >
@@ -310,17 +331,17 @@ export function GeoDistributionClient({ years }: { years: number[] }) {
               ))}
             </select>
           </div>
-          <div className="h-[460px] w-full overflow-hidden rounded-2xl border border-slate-200">
+          <div className="h-[460px] w-full overflow-hidden border border-machine-yellow/20">
             <div ref={leftContainerRef} className="h-full w-full" />
           </div>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white/80 p-4">
+        <div className="glass-card p-4">
           <div className="mb-3 flex items-center justify-between">
-            <h3 className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-600">
+            <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-machine-yellow">
               Community Choropleth (Right)
             </h3>
             <select
-              className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm"
+              className="border border-machine-yellow/30 bg-void/70 px-3 py-1.5 text-xs uppercase tracking-[0.1em] text-system-white"
               value={rightYear}
               onChange={(e) => setRightYear(Number(e.target.value))}
             >
@@ -331,19 +352,19 @@ export function GeoDistributionClient({ years }: { years: number[] }) {
               ))}
             </select>
           </div>
-          <div className="h-[460px] w-full overflow-hidden rounded-2xl border border-slate-200">
+          <div className="h-[460px] w-full overflow-hidden border border-machine-yellow/20">
             <div ref={rightContainerRef} className="h-full w-full" />
           </div>
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white/80 p-4">
-        <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.12em] text-slate-600">
+      <div className="glass-card p-4">
+        <h3 className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-machine-yellow">
           Hardship Index (Preview)
         </h3>
-        <div className="overflow-auto rounded-xl border border-slate-200">
+        <div className="overflow-auto border border-machine-yellow/20">
           <table className="min-w-full text-left text-xs">
-            <thead className="bg-slate-100 text-slate-600">
+            <thead className="bg-machine-yellow/10 text-zinc-400">
               <tr>
                 {hardshipPreview[0]
                   ? Object.keys(hardshipPreview[0]).slice(0, 6).map((col) => (
@@ -356,11 +377,11 @@ export function GeoDistributionClient({ years }: { years: number[] }) {
             </thead>
             <tbody>
               {hardshipPreview.map((row, idx) => (
-                <tr key={idx} className="border-t border-slate-200">
+                <tr key={idx} className="border-t border-machine-yellow/15">
                   {Object.keys(row)
                     .slice(0, 6)
                     .map((col) => (
-                      <td key={col} className="px-3 py-2 text-slate-700">
+                      <td key={col} className="px-3 py-2 text-zinc-300">
                         {String(row[col] ?? "-")}
                       </td>
                     ))}

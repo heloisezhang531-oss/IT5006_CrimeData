@@ -43,34 +43,12 @@ def test_eda_endpoints_contract():
         "/api/eda/categorical/top-crime-types?limit=10",
         "/api/eda/categorical/top-locations?limit=10",
         "/api/eda/categorical/crime-location-heatmap?limit=10",
-        "/api/eda/raw/recent?limit=200",
-        "/api/eda/victim/filters",
     ]
     for endpoint in endpoints:
         res = client.get(endpoint)
         assert res.status_code == 200, endpoint
         body = res.json()
         assert "meta" in body and "data" in body, endpoint
-
-
-def test_eda_victim_dashboard_contract():
-    payload = {
-        "age_min": 18,
-        "age_max": 65,
-        "offense_categories": ["Assault", "Robbery"],
-        "include_raw_sample": True,
-        "raw_limit": 50,
-    }
-    res = client.post("/api/eda/victim/dashboard", json=payload)
-    assert res.status_code == 200
-    body = res.json()
-    assert "data" in body
-    if body["data"]:
-        row = body["data"][0]
-        assert "kpi" in row
-        assert "demographics" in row
-        assert "relationships" in row
-        assert "activity_heatmap" in row
 
 
 def test_eda_boundary_validation():
@@ -80,8 +58,24 @@ def test_eda_boundary_validation():
     bad_limit = client.get("/api/eda/categorical/top-crime-types?limit=0")
     assert bad_limit.status_code == 422
 
-    bad_body = client.post(
-        "/api/eda/victim/dashboard",
-        json={"age_min": 30, "age_max": 20, "raw_limit": 0},
-    )
-    assert bad_body.status_code == 422
+
+def test_victim_endpoints_removed():
+    removed_get = client.get("/api/eda/victim/filters")
+    assert removed_get.status_code == 404
+
+    removed_post = client.post("/api/eda/victim/dashboard", json={})
+    assert removed_post.status_code == 404
+
+
+def test_raw_and_model_lab_endpoints_removed():
+    removed_raw = client.get("/api/eda/raw/recent?limit=200")
+    assert removed_raw.status_code == 404
+
+    removed_model_lab_ablation = client.get("/api/model-lab/ablation")
+    assert removed_model_lab_ablation.status_code == 404
+
+    removed_model_lab_generalization = client.get("/api/model-lab/generalization")
+    assert removed_model_lab_generalization.status_code == 404
+
+    removed_model_lab_reliability = client.get("/api/model-lab/reliability")
+    assert removed_model_lab_reliability.status_code == 404

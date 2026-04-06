@@ -15,7 +15,7 @@ def risk_vs_hardship():
 
 @router.get("/predicted-risk-hardship-map")
 def predicted_risk_hardship_map(target_month: str | None = None):
-    key = f"socio_predicted_risk_map_{target_month or 'latest'}"
+    key = f"socio_predicted_risk_map_v3_{target_month or 'latest'}"
     return provider.fetch(key, lambda engine, table: svc.model_predict_next_month(engine, table, target_month=target_month))
 
 

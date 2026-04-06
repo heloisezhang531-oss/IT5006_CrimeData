@@ -5,6 +5,9 @@ import L from "leaflet";
 import type { RiskPoint } from "./risk-map";
 
 const CHICAGO_CENTER: [number, number] = [41.8781, -87.6298];
+const DEFAULT_ZOOM = 9.1;
+const ZOOM_IN_OFFSET = 1;
+const MAX_AUTO_ZOOM = 19;
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8000/api";
 
 function colorByRisk(risk: string): string {
@@ -41,12 +44,24 @@ function geometryCenter(geometry: unknown): [number, number] | null {
   return [(minLat + maxLat) / 2, (minLng + maxLng) / 2];
 }
 
+function safeInvalidate(map: L.Map | null, container?: HTMLDivElement | null): void {
+  if (!map) return;
+  if (container && !container.isConnected) return;
+  const internal = map as unknown as { _loaded?: boolean; _mapPane?: unknown };
+  if (!internal._loaded || !internal._mapPane) return;
+  try {
+    map.invalidateSize({ pan: false, debounceMoveend: true });
+  } catch {
+    // Ignore transient Leaflet lifecycle errors during unmount/remount.
+  }
+}
+
 export function RiskMapClient({ points }: { points: RiskPoint[] }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markerLayerRef = useRef<L.LayerGroup | null>(null);
   const resizeCleanupRef = useRef<(() => void) | null>(null);
-  const [centroids, setCentroids] = useState<Record<string, [number, number]>>({});
+  const [communityMeta, setCommunityMeta] = useState<Record<string, { center: [number, number]; name: string }>>({});
 
   useEffect(() => {
     let cancelled = false;
@@ -58,16 +73,18 @@ export function RiskMapClient({ points }: { points: RiskPoint[] }) {
           data?: Array<{ geojson?: { features?: Array<{ properties?: Record<string, unknown>; geometry?: unknown }> } }>;
         };
         const featureRows = payload.data?.[0]?.geojson?.features ?? [];
-        const next: Record<string, [number, number]> = {};
+        const next: Record<string, { center: [number, number]; name: string }> = {};
         featureRows.forEach((feature) => {
           const area = feature?.properties?.area_numbe;
           if (area === null || area === undefined) return;
           const center = geometryCenter(feature.geometry);
           if (!center) return;
-          next[String(Number(area))] = center;
+          const rawName = feature?.properties?.community;
+          const name = typeof rawName === "string" && rawName.trim().length > 0 ? rawName.trim() : `Community ${Number(area)}`;
+          next[String(Number(area))] = { center, name };
         });
         if (!cancelled && Object.keys(next).length > 0) {
-          setCentroids(next);
+          setCommunityMeta(next);
         }
       } catch {
         // Keep map functional even when geojson endpoint is temporarily unavailable.
@@ -87,7 +104,7 @@ export function RiskMapClient({ points }: { points: RiskPoint[] }) {
       zoomControl: true,
       attributionControl: true,
       scrollWheelZoom: false,
-    }).setView(CHICAGO_CENTER, 9.5);
+    }).setView(CHICAGO_CENTER, DEFAULT_ZOOM);
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -96,8 +113,13 @@ export function RiskMapClient({ points }: { points: RiskPoint[] }) {
 
     markerLayerRef.current = L.layerGroup().addTo(map);
     mapRef.current = map;
-    const invalidate = () => map.invalidateSize({ pan: false, debounceMoveend: true });
-    requestAnimationFrame(invalidate);
+    let disposed = false;
+    let rafId: number | null = null;
+    const invalidate = () => {
+      if (disposed) return;
+      safeInvalidate(map, container);
+    };
+    rafId = requestAnimationFrame(invalidate);
     const onWindowResize = () => invalidate();
     window.addEventListener("resize", onWindowResize);
     let observer: ResizeObserver | null = null;
@@ -106,6 +128,10 @@ export function RiskMapClient({ points }: { points: RiskPoint[] }) {
       observer.observe(container);
     }
     resizeCleanupRef.current = () => {
+      disposed = true;
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
       window.removeEventListener("resize", onWindowResize);
       observer?.disconnect();
     };
@@ -122,45 +148,53 @@ export function RiskMapClient({ points }: { points: RiskPoint[] }) {
   useEffect(() => {
     const map = mapRef.current;
     const markerLayer = markerLayerRef.current;
+    const container = containerRef.current;
     if (!map || !markerLayer) return;
 
-    map.invalidateSize({ pan: false, debounceMoveend: true });
+    safeInvalidate(map, container);
     markerLayer.clearLayers();
     const latLngs: L.LatLngExpression[] = [];
 
     points.forEach((point) => {
       const area = String(Number(point.community_area));
-      const center = centroids[area];
-      if (!center) return;
-      const [lat, lng] = center;
+      const meta = communityMeta[area];
+      if (!meta) return;
+      const [lat, lng] = meta.center;
       latLngs.push([lat, lng]);
 
       const probability = Number(point.pred_prob ?? 0);
-      const marker = L.circleMarker([lat, lng], {
-        radius: 5 + Math.max(0, Math.min(1, probability)) * 9,
+      const normalizedProb = Math.max(0, Math.min(1, probability));
+      const marker = L.circle([lat, lng], {
+        // Tuned for visible overlap without overwhelming the base map.
+        radius: 560 + normalizedProb * 1800,
         color: colorByRisk(String(point.risk_level ?? "low")),
         fillColor: colorByRisk(String(point.risk_level ?? "low")),
-        fillOpacity: 0.62,
-        weight: 1.8,
+        fillOpacity: 0.52,
+        weight: 1.6,
       });
 
-      marker.bindPopup(
-        `<strong>Community ${point.community_area}</strong><br/>Risk: ${String(point.risk_level)}<br/>Probability: ${(probability * 100).toFixed(1)}%`,
+      const hardship = Number(point.hardship_index);
+      const hardshipText = Number.isFinite(hardship) ? hardship.toFixed(2) : "N/A";
+      const communityName = typeof point.community_name === "string" && point.community_name.trim().length > 0 ? point.community_name : meta.name;
+      marker.bindTooltip(
+        `<strong>${communityName}</strong><br/>Predicted Risk: ${(normalizedProb * 100).toFixed(1)}%<br/>Hardship Index: ${hardshipText}`,
+        { sticky: true, direction: "top", opacity: 0.95 },
       );
       marker.addTo(markerLayer);
     });
 
     if (latLngs.length > 1) {
       map.fitBounds(L.latLngBounds(latLngs).pad(0.2));
+      map.setZoom(Math.min(map.getZoom() + ZOOM_IN_OFFSET, MAX_AUTO_ZOOM));
     } else if (latLngs.length === 1) {
-      map.setView(latLngs[0], 11);
+      map.setView(latLngs[0], 11 + ZOOM_IN_OFFSET);
     } else {
-      map.setView(CHICAGO_CENTER, 9.5);
+      map.setView(CHICAGO_CENTER, DEFAULT_ZOOM);
     }
-  }, [points, centroids]);
+  }, [points, communityMeta]);
 
   return (
-    <div className="h-[420px] w-full overflow-hidden rounded-2xl border border-slate-200 bg-white">
+    <div className="h-[420px] w-full overflow-hidden border border-machine-yellow/20 bg-void/50">
       <div ref={containerRef} className="h-full w-full" />
     </div>
   );
