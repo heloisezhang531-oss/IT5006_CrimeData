@@ -37,8 +37,7 @@ def _cache_data(*args, **kwargs):
 # Common date filter clause
 DATE_FILTER = "year >= 2015 AND year <= 2024"
 
-@_cache_data(ttl=36000)
-def get_total_records(_engine):
+@_cache_data(ttl=36000)`r`ndef get_total_records(_engine):
     """Fetches the total number of records in the chicago_crimes table for 2015-2024."""
     try:
         with _engine.connect() as conn:
@@ -49,8 +48,7 @@ def get_total_records(_engine):
         st.error(f"Error fetching total records: {e}")
         return 0
 
-@_cache_data(ttl=36000)
-def get_missing_values_summary(_engine):
+@_cache_data(ttl=36000)`r`ndef get_missing_values_summary(_engine):
     """
     Approximates missing values for key columns. 
     """
@@ -90,8 +88,7 @@ def get_missing_values_summary(_engine):
         st.error(f"Error fetching missing values: {e}")
         return pd.DataFrame()
 
-@_cache_data(ttl=36000)
-def get_arrest_domestic_stats(_engine):
+@_cache_data(ttl=36000)`r`ndef get_arrest_domestic_stats(_engine):
     """Fetches counts for Arrest and Domestic columns."""
     stats = {}
     try:
@@ -115,8 +112,7 @@ def get_arrest_domestic_stats(_engine):
         st.error(f"Error fetching arrest/domestic stats: {e}")
         return {'arrest': pd.DataFrame(), 'domestic': pd.DataFrame()}
 
-@_cache_data(ttl=36000)
-def get_yearly_trends(_engine):
+@_cache_data(ttl=36000)`r`ndef get_yearly_trends(_engine):
     """Fetches crime counts grouped by year."""
     try:
         with _engine.connect() as conn:
@@ -127,8 +123,7 @@ def get_yearly_trends(_engine):
         st.error(f"Error fetching yearly trends: {e}")
         return pd.DataFrame()
 
-@_cache_data(ttl=36000)
-def get_monthly_trends(_engine):
+@_cache_data(ttl=36000)`r`ndef get_monthly_trends(_engine):
     """Fetches crime counts grouped by month (across all years)."""
     try:
         with _engine.connect() as conn:
@@ -139,8 +134,7 @@ def get_monthly_trends(_engine):
         st.error(f"Error fetching monthly trends: {e}")
         return pd.DataFrame()
 
-@_cache_data(ttl=36000)
-def get_day_of_week_counts(_engine):
+@_cache_data(ttl=36000)`r`ndef get_day_of_week_counts(_engine):
      """Fetches crime counts grouped by Day of Week."""
      try:
         with _engine.connect() as conn:
@@ -163,8 +157,7 @@ def get_day_of_week_counts(_engine):
         st.error(f"Error fetching day of week trends: {e}")
         return pd.DataFrame()
 
-@_cache_data(ttl=36000)
-def get_heatmap_data(_engine):
+@_cache_data(ttl=36000)`r`ndef get_heatmap_data(_engine):
     """Fetches crime counts grouped by Day of Week and Hour."""
     try:
         with _engine.connect() as conn:
@@ -191,8 +184,7 @@ def get_heatmap_data(_engine):
         st.error(f"Error fetching heatmap data: {e}")
         return pd.DataFrame()
 
-@_cache_data(ttl=36000)
-def get_top_crime_types_stacked(_engine, limit=10):
+@_cache_data(ttl=36000)`r`ndef get_top_crime_types_stacked(_engine, limit=10):
     """Fetches top N primary crime types, broken down by arrest status."""
     try:
         with _engine.connect() as conn:
@@ -222,8 +214,7 @@ def get_top_crime_types_stacked(_engine, limit=10):
         st.error(f"Error fetching top crime types: {e}")
         return pd.DataFrame()
 
-@_cache_data(ttl=36000)
-def get_top_locations_stacked(_engine, limit=10):
+@_cache_data(ttl=36000)`r`ndef get_top_locations_stacked(_engine, limit=10):
     """Fetches top N locations, broken down by arrest status."""
     try:
         with _engine.connect() as conn:
@@ -252,8 +243,7 @@ def get_top_locations_stacked(_engine, limit=10):
         st.error(f"Error fetching top locations: {e}")
         return pd.DataFrame()
 
-@_cache_data(ttl=36000)
-def get_crime_location_heatmap(_engine, top_types, top_locations):
+@_cache_data(ttl=36000)`r`ndef get_crime_location_heatmap(_engine, top_types, top_locations):
     """Fetches heatmap data for Top Crimes vs Top Locations."""
     try:
         if not top_types or not top_locations:
@@ -283,8 +273,7 @@ def get_crime_location_heatmap(_engine, top_types, top_locations):
         st.error(f"Error fetching crime-location heatmap: {e}")
         return pd.DataFrame()
 
-@_cache_data(ttl=36000)
-def get_top_crime_types_yearly(_engine, limit=10):
+@_cache_data(ttl=36000)`r`ndef get_top_crime_types_yearly(_engine, limit=10):
     """Fetches yearly counts for crime types. If limit is None, fetches all."""
     try:
         with _engine.connect() as conn:
@@ -316,8 +305,7 @@ def get_top_crime_types_yearly(_engine, limit=10):
         st.error(f"Error fetching crime types yearly trends: {e}")
         return pd.DataFrame()
 
-@_cache_data(ttl=36000)
-def get_recent_data(_engine, limit=1000):
+@_cache_data(ttl=36000)`r`ndef get_recent_data(_engine, limit=1000):
     """Fetches a sample of recent data."""
     try:
         with _engine.connect() as conn:
@@ -331,8 +319,7 @@ def get_recent_data(_engine, limit=1000):
         st.error(f"Error fetching recent data: {e}")
         return pd.DataFrame()
 
-@_cache_data(ttl=36000)
-def get_map_data(_engine,selected_year, limit=100000):
+@_cache_data(ttl=36000)`r`ndef get_map_data(_engine,selected_year, limit=100000):
     """Fetches latitude and longitude for a sample of crimes."""
     #Show data group by the years - zyh 2026.02.10
     try:
@@ -360,8 +347,7 @@ def get_geojson1():
         st.error(f"GeoJSON Error: {e}")
         return None
 
-@_cache_data(ttl=36000)
-def draw_choropleth(_engine, selected_year, limit=100000):
+@_cache_data(ttl=36000)`r`ndef draw_choropleth(_engine, selected_year, limit=100000):
     """
     Draw choropleth map for crimes by community area.
     Now also includes Top 3 Crime Types for each area.
@@ -430,4 +416,5 @@ def draw_choropleth(_engine, selected_year, limit=100000):
     except Exception as e:
         st.error(f"Error fetching choropleth data: {e}")
         return pd.DataFrame()
+
 

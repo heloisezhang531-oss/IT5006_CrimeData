@@ -1,5 +1,4 @@
 .streamlit/secrets.toml
-*.csv
 *.joblib
 summary.md
 *.png

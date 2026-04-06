@@ -1,0 +1,13 @@
+feature,importance
+roll_mean_12,0.59568363
+count_lag1,0.25965115
+roll_mean_3,0.045486003
+month_cos,0.026883705
+count_lag6,0.018970286
+month_sin,0.01063514
+roll_mean_6,0.00960144
+top_type_share,0.009527273
+count_lag3,0.008042389
+count_lag12,0.00790998
+hardship_index,0.007608992
+arrest_rate,0.0

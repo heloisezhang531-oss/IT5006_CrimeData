@@ -37,8 +37,7 @@ def _build_where_clause(age_range, selected_cats):
     
     clause = "WHERE " + " AND ".join(conditions) if conditions else ""
     return clause
-@_cache_data(ttl=36000)
-def get_filter_metadata(_engine):
+@_cache_data(ttl=36000)`r`ndef get_filter_metadata(_engine):
     """Fetch distinct categories and age range for initial UI setup."""
     try:
         with _engine.connect() as conn:
@@ -55,8 +54,7 @@ def get_filter_metadata(_engine):
     except Exception as e:
         st.error(f"Error fetching filter options: {e}")
         return 0, 100, []
-@_cache_data(ttl=36000)
-def get_kpi_data(_engine, age_range, selected_cats):
+@_cache_data(ttl=36000)`r`ndef get_kpi_data(_engine, age_range, selected_cats):
     """Fetch aggregated KPI metrics directly from DB."""
     where_clause = _build_where_clause(age_range, selected_cats)
     query = f"""
@@ -74,8 +72,7 @@ def get_kpi_data(_engine, age_range, selected_cats):
     except Exception as e:
         st.error(f"Error fetching KPIs: {e}")
         return (0, 0, 0)
-@_cache_data(ttl=36000)
-def get_demographics_data(_engine, age_range, selected_cats):
+@_cache_data(ttl=36000)`r`ndef get_demographics_data(_engine, age_range, selected_cats):
     """Fetch age and gender distribution."""
     where_clause = _build_where_clause(age_range, selected_cats)
     query = f"""
@@ -91,8 +88,7 @@ def get_demographics_data(_engine, age_range, selected_cats):
     except Exception as e:
         st.error(f"Error fetching demographics: {e}")
         return pd.DataFrame()
-@_cache_data(ttl=36000)
-def get_relationship_data(_engine, age_range, selected_cats, limit=10):
+@_cache_data(ttl=36000)`r`ndef get_relationship_data(_engine, age_range, selected_cats, limit=10):
     """Fetch top victim-offender relationships."""
     where_clause = _build_where_clause(age_range, selected_cats)
     query = f"""
@@ -109,8 +105,7 @@ def get_relationship_data(_engine, age_range, selected_cats, limit=10):
     except Exception as e:
         st.error(f"Error fetching relationships: {e}")
         return pd.DataFrame()
-@_cache_data(ttl=36000)
-def get_heatmap_data(_engine, age_range, selected_cats):
+@_cache_data(ttl=36000)`r`ndef get_heatmap_data(_engine, age_range, selected_cats):
     """Fetch activity vs offense category heatmap data."""
     where_clause = _build_where_clause(age_range, selected_cats)
     query = f"""
@@ -125,8 +120,7 @@ def get_heatmap_data(_engine, age_range, selected_cats):
     except Exception as e:
         st.error(f"Error fetching heatmap data: {e}")
         return pd.DataFrame()
-@_cache_data(ttl=36000)
-def get_raw_sample(_engine, age_range, selected_cats, limit=100):
+@_cache_data(ttl=36000)`r`ndef get_raw_sample(_engine, age_range, selected_cats, limit=100):
     """Fetch raw data sample."""
     where_clause = _build_where_clause(age_range, selected_cats)
     query = f"""
@@ -141,4 +135,5 @@ def get_raw_sample(_engine, age_range, selected_cats, limit=100):
     except Exception as e:
         st.error(f"Error fetching raw sample: {e}")
         return pd.DataFrame()
+
 
