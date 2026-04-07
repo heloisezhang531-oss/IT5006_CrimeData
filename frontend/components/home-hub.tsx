@@ -178,9 +178,9 @@ export function HomeHub({
                 </div>
               ))}
             </div>
-            <p className="mt-5 text-xs uppercase tracking-[0.14em] text-zinc-500">
-              Backend: <span className="text-system-white">{healthStatus}</span> | Data source mode:{" "}
-              <span className="text-machine-yellow">{dataSourceMode}</span>
+            <p className="mt-5 text-[11px] font-normal uppercase tracking-[0.1em] text-white/60">
+              Backend: <span className="font-normal text-black/85">{healthStatus}</span> | Data source mode:{" "}
+              <span className="font-normal text-machine-yellow">{dataSourceMode}</span>
             </p>
           </section>
 
