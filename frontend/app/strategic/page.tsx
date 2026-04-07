@@ -5,8 +5,6 @@ import { DataTable } from "@/components/table";
 import { EvidencePanel, GlassPanel, PageHero } from "@/components/ui";
 
 export default async function StrategicPage() {
-  const total = await apiGet<Record<string, number | string>>("/eda/overview/total-records");
-  const missing = await apiGet<Record<string, number | string>>("/eda/overview/missing-values");
   const keyStats = await apiGet<Record<string, unknown>>("/eda/key-stats/arrest-domestic");
   const yearly = await apiGet<Record<string, number | string>>("/eda/temporal/yearly");
   const monthly = await apiGet<Record<string, number | string>>("/eda/temporal/monthly");
@@ -14,7 +12,6 @@ export default async function StrategicPage() {
   const heat = await apiGet<Record<string, number | string>>("/eda/temporal/hour-day-heatmap");
   const typeYearly = await apiGet<Record<string, number | string>>("/eda/temporal/crime-types-yearly?limit=all");
 
-  const totalRecords = Number(total.data[0]?.total_records ?? 0);
   const arrestRows = (keyStats.data[0]?.arrest as Array<Record<string, number | string>>) ?? [];
   const domesticRows = (keyStats.data[0]?.domestic as Array<Record<string, number | string>>) ?? [];
 
@@ -74,9 +71,9 @@ export default async function StrategicPage() {
   return (
     <div className="space-y-8">
       <PageHero
-        eyebrow="Overview + Key Statistics + Temporal Trends"
+        eyebrow="Key Statistics + Temporal Trends"
         title="Chicago Crime EDA Alignment (2015-2024)"
-        description="Streamlit parity view for dataset overview, arrest/domestic split, and temporal signatures across year, month, weekday, and hour-day patterns."
+        description="Streamlit parity view for arrest/domestic split and temporal signatures across year, month, weekday, and hour-day patterns."
         conclusion="Baseline EDA signal: long-run burden is persistent with clear seasonality and time-window concentration."
       />
 
@@ -96,25 +93,12 @@ export default async function StrategicPage() {
             </ul>
           </div>
           <img
-            src="/report-figures/strategic-eda.png"
+            src="/pics/strategic.png"
             alt="Strategic EDA snapshot"
             className="h-56 w-full rounded-2xl border border-slate-200 object-cover"
           />
         </div>
       </GlassPanel>
-
-      <div className="grid gap-6 xl:grid-cols-2">
-        <GlassPanel>
-          <h2 className="mb-4 text-lg font-semibold">Dataset Overview</h2>
-          <p className="text-sm text-slate-600">Total Crime Records (2015-2024)</p>
-          <p className="mt-2 text-4xl font-semibold text-slate-900">{totalRecords.toLocaleString()}</p>
-          <p className="mt-4 text-sm text-slate-500">Time range fixed to Jan 2015 - Dec 2024.</p>
-        </GlassPanel>
-        <GlassPanel>
-          <h2 className="mb-4 text-lg font-semibold">Missing Values Percentage by Column</h2>
-          <BarCard data={missing.data} xKey="Column" yKey="Missing Rate (%)" color="#f97316" />
-        </GlassPanel>
-      </div>
 
       <div className="grid gap-6 xl:grid-cols-2">
         <GlassPanel>
@@ -166,21 +150,14 @@ export default async function StrategicPage() {
       </GlassPanel>
 
       <EvidencePanel
-        title="Evidence Tables (Overview/Temporal)"
+        title="Evidence Tables (Temporal)"
         summary="Expanded rows for parity audit and cross-checking with Streamlit output."
       >
-        <div className="grid gap-4 xl:grid-cols-3">
-          <DataTable rows={missing.data} />
+        <div className="grid gap-4 xl:grid-cols-2">
           <DataTable rows={yearly.data} />
           <DataTable rows={typeYearly.data} />
         </div>
       </EvidencePanel>
-      <GlassPanel>
-        <h3 className="mb-2 text-sm font-semibold uppercase tracking-[0.12em] text-slate-500">One-line decision</h3>
-        <p className="text-sm text-slate-700">
-          Use annual trend persistence and hourly-weekday concentration jointly when planning baseline patrol and prevention priorities.
-        </p>
-      </GlassPanel>
     </div>
   );
 }

@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from backend.app.api.deps import provider
-from backend.app.services import chicago_service as svc
+from ..deps import provider
+from ...services import chicago_service as svc
 
 router = APIRouter(prefix="/anomaly", tags=["anomaly"])
 

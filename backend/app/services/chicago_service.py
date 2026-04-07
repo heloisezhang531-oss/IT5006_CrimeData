@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 from sqlalchemy import text
 
-from backend.app.services.provider import df_payload, series_payload
+from .provider import df_payload, series_payload
 
 ROOT = Path(__file__).resolve().parents[3]
 HARDSHIP_PATH = ROOT / "Hardship Index of Chicago.csv"
@@ -295,8 +295,25 @@ def model_predict_next_month(engine, table: str, target_month: str | None = None
     out = pred[pred["pred_month"] == tm][
         ["community_area", "community_name", "pred_month", "pred_prob", "pred_label", "risk_level", "hardship_index"]
     ].copy()
+    out = out.sort_values("pred_prob", ascending=False).reset_index(drop=True)
+
+    # Re-bin risk segments for map display by month-level ranking:
+    # top 25% -> high, top 50% -> medium, remaining -> low.
+    n = len(out)
+    if n > 0:
+        top25 = max(1, math.ceil(n * 0.25))
+        top50 = max(top25, math.ceil(n * 0.50))
+
+        out["pred_label"] = 0
+        out.loc[: top25 - 1, "pred_label"] = 1
+
+        out["risk_level"] = "low"
+        out.loc[: top25 - 1, "risk_level"] = "high"
+        if top50 > top25:
+            out.loc[top25 : top50 - 1, "risk_level"] = "medium"
+
     out["pred_month"] = out["pred_month"].dt.strftime("%Y-%m")
-    return df_payload(out.sort_values("pred_prob", ascending=False).reset_index(drop=True), target_month=str(tm.date()))
+    return df_payload(out, target_month=str(tm.date()))
 
 
 def crime_action_dominant_type_region(engine, table: str) -> dict[str, Any]:

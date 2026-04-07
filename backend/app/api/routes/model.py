@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from backend.app.api.deps import provider
-from backend.app.schemas.common import PredictRequest
-from backend.app.services import chicago_service as svc
+from ..deps import provider
+from ...schemas.common import PredictRequest
+from ...services import chicago_service as svc
 
 router = APIRouter(prefix="/model", tags=["model"])
 

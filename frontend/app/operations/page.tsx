@@ -59,12 +59,6 @@ export default async function OperationsPage() {
         </div>
       </EvidencePanel>
 
-      <GlassPanel>
-        <h3 className="mb-2 text-sm font-semibold uppercase tracking-[0.12em] text-slate-500">One-line decision</h3>
-        <p className="text-sm text-slate-700">
-          Use dual-year community comparison to identify structural shift areas, then align field deployment to hour-day hotspots.
-        </p>
-      </GlassPanel>
     </div>
   );
 }

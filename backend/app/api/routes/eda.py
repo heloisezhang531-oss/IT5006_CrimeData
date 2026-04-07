@@ -2,20 +2,10 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Query
 
-from backend.app.api.deps import provider
-from backend.app.services import eda_service as svc
+from ..deps import provider
+from ...services import eda_service as svc
 
 router = APIRouter(prefix="/eda", tags=["eda"])
-
-
-@router.get("/overview/total-records")
-def overview_total_records():
-    return provider.fetch("eda_overview_total_records", svc.overview_total_records)
-
-
-@router.get("/overview/missing-values")
-def overview_missing_values():
-    return provider.fetch("eda_overview_missing_values", svc.overview_missing_values)
 
 
 @router.get("/key-stats/arrest-domestic")

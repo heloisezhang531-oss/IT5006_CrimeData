@@ -3,8 +3,8 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.app.api.deps import provider
-from backend.app.api.routes import (
+from .api.deps import provider
+from .api.routes import (
     anomaly,
     crime_action,
     dashboard,
@@ -16,7 +16,7 @@ from backend.app.api.routes import (
     socio,
     strategic,
 )
-from backend.app.core.config import settings
+from .core.config import settings
 
 app = FastAPI(title=settings.app_name, version=settings.app_version)
 

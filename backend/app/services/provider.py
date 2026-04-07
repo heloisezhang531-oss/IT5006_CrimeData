@@ -11,14 +11,19 @@ from typing import Any, Callable, Iterable
 import pandas as pd
 
 from tidb_utils import create_tidb_engine, resolve_chicago_table_name
-from backend.app.core.config import settings
+from ..core.config import settings
 
 
 class DataProvider:
     def __init__(self) -> None:
         self.mode = settings.data_source_mode.lower()
         self.cache_dir = settings.cache_dir
-        self.cache_dir.mkdir(parents=True, exist_ok=True)
+        try:
+            self.cache_dir.mkdir(parents=True, exist_ok=True)
+        except Exception:
+            # Serverless runtimes may have read-only project directories.
+            self.cache_dir = Path("/tmp/data_cache")
+            self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.cache_ttl_seconds = max(0, settings.api_cache_ttl_seconds)
         self.cache_max_entries = max(16, settings.api_cache_max_entries)
         self._memory_cache: dict[str, tuple[float, dict[str, Any]]] = {}

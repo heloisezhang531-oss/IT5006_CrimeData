@@ -79,12 +79,6 @@ export default async function CommandCenterPage() {
         </div>
       </EvidencePanel>
 
-      <GlassPanel>
-        <h3 className="mb-2 text-sm font-semibold uppercase tracking-[0.12em] text-slate-500">One-line decision</h3>
-        <p className="text-sm text-slate-700">
-          Activate rapid-response review where alert spikes coincide with high baseline risk and dense hour-region concentration.
-        </p>
-      </GlassPanel>
     </div>
   );
 }

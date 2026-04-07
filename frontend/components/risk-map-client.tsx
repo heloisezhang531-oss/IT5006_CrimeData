@@ -44,11 +44,15 @@ function geometryCenter(geometry: unknown): [number, number] | null {
   return [(minLat + maxLat) / 2, (minLng + maxLng) / 2];
 }
 
-function safeInvalidate(map: L.Map | null, container?: HTMLDivElement | null): void {
-  if (!map) return;
-  if (container && !container.isConnected) return;
+function isMapOperational(map: L.Map | null, container?: HTMLDivElement | null): map is L.Map {
+  if (!map) return false;
+  if (container && !container.isConnected) return false;
   const internal = map as unknown as { _loaded?: boolean; _mapPane?: unknown };
-  if (!internal._loaded || !internal._mapPane) return;
+  return Boolean(internal._loaded && internal._mapPane);
+}
+
+function safeInvalidate(map: L.Map | null, container?: HTMLDivElement | null): void {
+  if (!isMapOperational(map, container)) return;
   try {
     map.invalidateSize({ pan: false, debounceMoveend: true });
   } catch {
@@ -139,9 +143,20 @@ export function RiskMapClient({ points }: { points: RiskPoint[] }) {
     return () => {
       resizeCleanupRef.current?.();
       resizeCleanupRef.current = null;
-      map.remove();
-      mapRef.current = null;
+      const markerLayer = markerLayerRef.current;
+      const mapToRemove = mapRef.current;
       markerLayerRef.current = null;
+      mapRef.current = null;
+      try {
+        markerLayer?.clearLayers();
+      } catch {
+        // Ignore transient layer teardown races during unmount.
+      }
+      try {
+        mapToRemove?.remove();
+      } catch {
+        // Ignore transient map teardown races during route transitions.
+      }
     };
   }, []);
 
@@ -149,7 +164,7 @@ export function RiskMapClient({ points }: { points: RiskPoint[] }) {
     const map = mapRef.current;
     const markerLayer = markerLayerRef.current;
     const container = containerRef.current;
-    if (!map || !markerLayer) return;
+    if (!map || !markerLayer || !isMapOperational(map, container)) return;
 
     safeInvalidate(map, container);
     markerLayer.clearLayers();
@@ -183,13 +198,17 @@ export function RiskMapClient({ points }: { points: RiskPoint[] }) {
       marker.addTo(markerLayer);
     });
 
-    if (latLngs.length > 1) {
-      map.fitBounds(L.latLngBounds(latLngs).pad(0.2));
-      map.setZoom(Math.min(map.getZoom() + ZOOM_IN_OFFSET, MAX_AUTO_ZOOM));
-    } else if (latLngs.length === 1) {
-      map.setView(latLngs[0], 11 + ZOOM_IN_OFFSET);
-    } else {
-      map.setView(CHICAGO_CENTER, DEFAULT_ZOOM);
+    try {
+      if (latLngs.length > 1) {
+        map.fitBounds(L.latLngBounds(latLngs).pad(0.2));
+        map.setZoom(Math.min(map.getZoom() + ZOOM_IN_OFFSET, MAX_AUTO_ZOOM));
+      } else if (latLngs.length === 1) {
+        map.setView(latLngs[0], 11 + ZOOM_IN_OFFSET);
+      } else {
+        map.setView(CHICAGO_CENTER, DEFAULT_ZOOM);
+      }
+    } catch {
+      // Ignore transient viewport updates on disposed map instances.
     }
   }, [points, communityMeta]);
 

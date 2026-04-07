@@ -8,8 +8,8 @@ import numpy as np
 import pandas as pd
 
 import analysis
-from backend.app.services import chicago_service as chicago
-from backend.app.services.provider import df_payload, series_payload
+from . import chicago_service as chicago
+from .provider import df_payload, series_payload
 
 ROOT = Path(__file__).resolve().parents[3]
 HARDSHIP_PATH = ROOT / "Hardship Index of Chicago.csv"
@@ -119,35 +119,6 @@ def _fallback_type_month(engine, table: str) -> pd.DataFrame:
     df["month"] = pd.to_datetime(df["month"])
     df = df[(df["month"].dt.year >= 2015) & (df["month"].dt.year <= 2024)]
     return df
-
-
-def overview_total_records(engine, table: str) -> dict[str, Any]:
-    total = analysis.get_total_records(engine) if engine is not None else 0
-    if not total:
-        fallback = _fallback_region_month(engine, table)
-        total = int(fallback["count_total"].sum()) if not fallback.empty else 0
-    return series_payload([{"total_records": int(total), "year_start": 2015, "year_end": 2024}])
-
-
-def overview_missing_values(engine, table: str) -> dict[str, Any]:
-    if engine is not None:
-        df = analysis.get_missing_values_summary(engine)
-        if not df.empty:
-            return df_payload(df)
-    cols = [
-        "x_coordinate",
-        "y_coordinate",
-        "latitude",
-        "longitude",
-        "location",
-        "location_description",
-        "ward",
-        "district",
-    ]
-    fallback_df = pd.DataFrame(
-        {"Column": cols, "Missing Count": [0] * len(cols), "Missing Rate (%)": [0.0] * len(cols)}
-    )
-    return df_payload(fallback_df)
 
 
 def key_stats_arrest_domestic(engine, table: str) -> dict[str, Any]:

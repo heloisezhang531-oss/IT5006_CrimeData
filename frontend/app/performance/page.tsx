@@ -50,12 +50,6 @@ export default async function PerformancePage() {
         </div>
       </EvidencePanel>
 
-      <GlassPanel>
-        <h3 className="mb-2 text-sm font-semibold uppercase tracking-[0.12em] text-slate-500">One-line decision</h3>
-        <p className="text-sm text-slate-700">
-          Use reliability-aware thresholds: scale intervention confidence by region/type strength rather than treating all outputs equally.
-        </p>
-      </GlassPanel>
     </div>
   );
 }

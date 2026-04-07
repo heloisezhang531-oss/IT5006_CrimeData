@@ -46,10 +46,15 @@ function normalizeCommunityArea(value: unknown): string {
   return String(Number(value));
 }
 
-function safeInvalidate(map: L.Map | null): void {
-  if (!map) return;
+function isMapOperational(map: L.Map | null, container?: HTMLDivElement | null): map is L.Map {
+  if (!map) return false;
+  if (container && !container.isConnected) return false;
   const internal = map as unknown as { _loaded?: boolean; _mapPane?: unknown };
-  if (!internal._loaded || !internal._mapPane) return;
+  return Boolean(internal._loaded && internal._mapPane);
+}
+
+function safeInvalidate(map: L.Map | null, container?: HTMLDivElement | null): void {
+  if (!isMapOperational(map, container)) return;
   try {
     map.invalidateSize({ pan: false, debounceMoveend: true });
   } catch {
@@ -89,8 +94,7 @@ export function GeoDistributionClient({ years }: { years: number[] }) {
     let rafId: number | null = null;
     const invalidate = () => {
       if (disposed) return;
-      if (!container.isConnected) return;
-      safeInvalidate(map);
+      safeInvalidate(map, container);
     };
     rafId = requestAnimationFrame(invalidate);
     const onWindowResize = () => invalidate();
@@ -153,15 +157,30 @@ export function GeoDistributionClient({ years }: { years: number[] }) {
     return () => {
       resizeCleanupRef.current.forEach((fn) => fn());
       resizeCleanupRef.current = [];
-      pointsMapRef.current?.remove();
-      leftMapRef.current?.remove();
-      rightMapRef.current?.remove();
+      const pointsMap = pointsMapRef.current;
+      const leftMap = leftMapRef.current;
+      const rightMap = rightMapRef.current;
       pointsMapRef.current = null;
       leftMapRef.current = null;
       rightMapRef.current = null;
       pointsLayerRef.current = null;
       leftLayerRef.current = null;
       rightLayerRef.current = null;
+      try {
+        pointsMap?.remove();
+      } catch {
+        // Ignore teardown race on removed pane/container.
+      }
+      try {
+        leftMap?.remove();
+      } catch {
+        // Ignore teardown race on removed pane/container.
+      }
+      try {
+        rightMap?.remove();
+      } catch {
+        // Ignore teardown race on removed pane/container.
+      }
     };
   }, []);
 
@@ -188,7 +207,8 @@ export function GeoDistributionClient({ years }: { years: number[] }) {
       const rows = await fetchApi<PointRow>(`/eda/geography/points?year=${pointYear}&limit=12000`);
       const layer = pointsLayerRef.current;
       const map = pointsMapRef.current;
-      if (!layer || !map) return;
+      const container = pointContainerRef.current;
+      if (!layer || !map || !isMapOperational(map, container)) return;
       layer.clearLayers();
       const latLngs: L.LatLngExpression[] = [];
       rows.forEach((row) => {
@@ -205,11 +225,15 @@ export function GeoDistributionClient({ years }: { years: number[] }) {
         marker.addTo(layer);
         latLngs.push([row.latitude, row.longitude]);
       });
-      safeInvalidate(map);
-      if (latLngs.length > 1) {
-        map.fitBounds(L.latLngBounds(latLngs).pad(0.15));
-      } else {
-        map.setView(CHICAGO_CENTER, 10);
+      safeInvalidate(map, container);
+      try {
+        if (latLngs.length > 1) {
+          map.fitBounds(L.latLngBounds(latLngs).pad(0.15));
+        } else {
+          map.setView(CHICAGO_CENTER, 10);
+        }
+      } catch {
+        // Ignore transient viewport updates on disposed map instances.
       }
     };
     run();
@@ -219,51 +243,60 @@ export function GeoDistributionClient({ years }: { years: number[] }) {
     map: L.Map | null,
     layerRef: MutableRefObject<L.GeoJSON | null>,
     rows: ChoroplethRow[],
+    container?: HTMLDivElement | null,
   ) => {
     const geojson = geojsonRef.current;
-    if (!map || !geojson) return;
-    safeInvalidate(map);
+    if (!geojson || !isMapOperational(map, container)) return;
+    safeInvalidate(map, container);
     if (layerRef.current) {
-      map.removeLayer(layerRef.current);
+      try {
+        map.removeLayer(layerRef.current);
+      } catch {
+        // Ignore stale layer detach on disposed map instances.
+      }
       layerRef.current = null;
     }
     const lookup = new Map<string, ChoroplethRow>();
     rows.forEach((row) => lookup.set(normalizeCommunityArea(row.community_area), row));
     const maxCount = rows.reduce((acc, row) => Math.max(acc, Number(row.crime_count || 0)), 0);
 
-    const layer = L.geoJSON(geojson as unknown as GeoJSON.GeoJsonObject, {
-      style: (feature) => {
-        const area = normalizeCommunityArea((feature?.properties as Record<string, unknown>)?.area_numbe);
-        const row = lookup.get(area);
-        const count = Number(row?.crime_count ?? 0);
-        return {
-          color: "#475569",
-          weight: 0.8,
-          fillOpacity: 0.68,
-          fillColor: colorByCount(count, maxCount),
-        };
-      },
-      onEachFeature: (feature, featureLayer) => {
-        const area = normalizeCommunityArea((feature?.properties as Record<string, unknown>)?.area_numbe);
-        const row = lookup.get(area);
-        const communityName = row?.community_name ?? `Community ${area}`;
-        const count = Number(row?.crime_count ?? 0);
-        const topTypes = String(row?.top_types ?? "No data");
-        featureLayer.bindPopup(
-          `<strong>${communityName}</strong><br/>Crime Count: ${count}<br/>Top Types:<br/>${topTypes}`,
-        );
-        featureLayer.bindTooltip(
-          `${communityName}<br/>Crime Count: ${count}<br/>Top Types: ${topTypes}`,
-          { sticky: true },
-        );
-      },
-    }).addTo(map);
-    layerRef.current = layer;
-    const bounds = layer.getBounds();
-    if (bounds.isValid()) {
-      map.fitBounds(bounds.pad(0.05));
-    } else {
-      map.setView(CHICAGO_CENTER, 10);
+    try {
+      const layer = L.geoJSON(geojson as unknown as GeoJSON.GeoJsonObject, {
+        style: (feature) => {
+          const area = normalizeCommunityArea((feature?.properties as Record<string, unknown>)?.area_numbe);
+          const row = lookup.get(area);
+          const count = Number(row?.crime_count ?? 0);
+          return {
+            color: "#475569",
+            weight: 0.8,
+            fillOpacity: 0.68,
+            fillColor: colorByCount(count, maxCount),
+          };
+        },
+        onEachFeature: (feature, featureLayer) => {
+          const area = normalizeCommunityArea((feature?.properties as Record<string, unknown>)?.area_numbe);
+          const row = lookup.get(area);
+          const communityName = row?.community_name ?? `Community ${area}`;
+          const count = Number(row?.crime_count ?? 0);
+          const topTypes = String(row?.top_types ?? "No data");
+          featureLayer.bindPopup(
+            `<strong>${communityName}</strong><br/>Crime Count: ${count}<br/>Top Types:<br/>${topTypes}`,
+          );
+          featureLayer.bindTooltip(
+            `${communityName}<br/>Crime Count: ${count}<br/>Top Types: ${topTypes}`,
+            { sticky: true },
+          );
+        },
+      }).addTo(map);
+      layerRef.current = layer;
+      const bounds = layer.getBounds();
+      if (bounds.isValid()) {
+        map.fitBounds(bounds.pad(0.05));
+      } else {
+        map.setView(CHICAGO_CENTER, 10);
+      }
+    } catch {
+      // Ignore rendering races on disposed map instances.
     }
   };
 
@@ -271,7 +304,7 @@ export function GeoDistributionClient({ years }: { years: number[] }) {
     if (!geojsonReady) return;
     const run = async () => {
       const rows = await fetchApi<ChoroplethRow>(`/eda/geography/community-choropleth?year=${leftYear}`);
-      renderChoropleth(leftMapRef.current, leftLayerRef, rows);
+      renderChoropleth(leftMapRef.current, leftLayerRef, rows, leftContainerRef.current);
     };
     run();
   }, [leftYear, geojsonReady]);
@@ -280,7 +313,7 @@ export function GeoDistributionClient({ years }: { years: number[] }) {
     if (!geojsonReady) return;
     const run = async () => {
       const rows = await fetchApi<ChoroplethRow>(`/eda/geography/community-choropleth?year=${rightYear}`);
-      renderChoropleth(rightMapRef.current, rightLayerRef, rows);
+      renderChoropleth(rightMapRef.current, rightLayerRef, rows, rightContainerRef.current);
     };
     run();
   }, [rightYear, geojsonReady]);

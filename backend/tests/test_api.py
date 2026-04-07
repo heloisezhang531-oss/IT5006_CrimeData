@@ -28,8 +28,6 @@ def test_model_predict_shape():
 
 def test_eda_endpoints_contract():
     endpoints = [
-        "/api/eda/overview/total-records",
-        "/api/eda/overview/missing-values",
         "/api/eda/key-stats/arrest-domestic",
         "/api/eda/temporal/yearly",
         "/api/eda/temporal/monthly",
@@ -49,6 +47,14 @@ def test_eda_endpoints_contract():
         assert res.status_code == 200, endpoint
         body = res.json()
         assert "meta" in body and "data" in body, endpoint
+
+
+def test_eda_overview_endpoints_removed():
+    removed_total = client.get("/api/eda/overview/total-records")
+    assert removed_total.status_code == 404
+
+    removed_missing = client.get("/api/eda/overview/missing-values")
+    assert removed_missing.status_code == 404
 
 
 def test_eda_boundary_validation():

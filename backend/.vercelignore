@@ -1,0 +1,6 @@
+tests
+__pycache__
+*.log
+*.err.log
+backend-server.log
+backend-server.err.log

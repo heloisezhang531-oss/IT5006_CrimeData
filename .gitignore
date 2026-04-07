@@ -2,6 +2,7 @@
 *.joblib
 summary.md
 *.png
+*.jpg
 *.docx
 *.doc
 *.zip

@@ -54,8 +54,8 @@ export default async function CrimeActionPage() {
 
       <GlassPanel className="space-y-4">
         <p className="story-subtitle">Report Story | Phase1 §4-§6</p>
-        <div className="grid gap-5 xl:grid-cols-[1.2fr_1fr] xl:items-center">
-          <div>
+        <div className="grid gap-5 xl:grid-cols-[1.35fr_0.85fr] xl:items-center">
+          <div className="xl:pr-3">
             <h2 className="text-2xl font-semibold text-slate-900">EDA Story II: Crime Mix and Domestic Burden Need Stratified Actions</h2>
             <p className="mt-2 text-sm text-slate-600">
               The report-level narrative is mapped here as offense-type and location-type intersections, so interventions can be matched to
@@ -63,9 +63,9 @@ export default async function CrimeActionPage() {
             </p>
           </div>
           <img
-            src="/report-figures/crime-action-categorical.png"
+            src="/pics/crime_action.jpg"
             alt="Crime action categorical snapshot"
-            className="h-56 w-full rounded-2xl border border-slate-200 object-cover"
+            className="h-72 w-full rounded-2xl border border-slate-200 object-cover object-center xl:h-80"
           />
         </div>
       </GlassPanel>
@@ -107,12 +107,6 @@ export default async function CrimeActionPage() {
         </div>
       </EvidencePanel>
 
-      <GlassPanel>
-        <h3 className="mb-2 text-sm font-semibold uppercase tracking-[0.12em] text-slate-500">One-line decision</h3>
-        <p className="text-sm text-slate-700">
-          Allocate targeted patrol around top crime-location intersections and calibrate response by arrest conversion differences.
-        </p>
-      </GlassPanel>
     </div>
   );
 }

@@ -151,7 +151,12 @@ export function HomeHub({
           transition={{ duration: 0.45 }}
           className="space-y-8"
         >
-          <section className="glass-strong timeline-glow relative overflow-hidden p-6 md:p-10">
+          <section className="glass-strong home-hero-gold timeline-glow relative overflow-hidden p-6 md:p-10">
+            <img
+              src="/pics/top_secret.png"
+              alt="Top secret crime tracking board"
+              className="pointer-events-none absolute right-3 top-3 z-10 hidden w-52 rotate-[7deg] drop-shadow-[0_12px_26px_rgba(0,0,0,0.45)] md:block lg:w-64"
+            />
             <span className="inline-flex border border-machine-yellow/35 bg-machine-yellow/10 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-machine-yellow">
               Launch Keynote Mode
             </span>

@@ -74,7 +74,7 @@ export default async function SocioeconomicPage() {
             </p>
           </div>
           <img
-            src="/report-figures/socio-risk-map.png"
+            src="/pics/socioeconomic.jpg"
             alt="Socioeconomic risk map snapshot"
             className="h-56 w-full rounded-2xl border border-slate-200 object-cover"
           />
@@ -106,12 +106,6 @@ export default async function SocioeconomicPage() {
         <DataTable rows={hardshipScatter as Record<string, unknown>[]} />
       </EvidencePanel>
 
-      <GlassPanel>
-        <h3 className="mb-2 text-sm font-semibold uppercase tracking-[0.12em] text-slate-500">One-line decision</h3>
-        <p className="text-sm text-slate-700">
-          Combine hotspot deployment with longer-horizon support planning in high-hardship communities to avoid purely reactive allocation.
-        </p>
-      </GlassPanel>
     </div>
   );
 }
