@@ -13,14 +13,6 @@ type KpiItem = {
   precision?: number;
 };
 
-type StoryItem = {
-  chapter: string;
-  title: string;
-  description: string;
-  href: string;
-  image: string;
-};
-
 type ModuleCard = {
   title: string;
   href: string;
@@ -110,13 +102,11 @@ export function HomeHub({
   kpis,
   healthStatus,
   dataSourceMode,
-  storyline,
   cards,
 }: {
   kpis: readonly KpiItem[];
   healthStatus: string;
   dataSourceMode: string;
-  storyline: readonly StoryItem[];
   cards: readonly ModuleCard[];
 }) {
   const [entered, setEntered] = useState(false);
@@ -182,23 +172,6 @@ export function HomeHub({
               Backend: <span className="font-normal text-black/85">{healthStatus}</span> | Data source mode:{" "}
               <span className="font-normal text-machine-yellow">{dataSourceMode}</span>
             </p>
-          </section>
-
-          <section className="glass-card space-y-4 p-6">
-            <p className="story-subtitle">Report Storyline Handoff</p>
-            <h2 className="text-2xl font-bold uppercase tracking-[0.08em] text-system-white md:text-3xl">
-              EDA and Modeling Story Has Been Split Into Functional Pages
-            </h2>
-            <div className="grid gap-4 lg:grid-cols-3">
-              {storyline.map((item) => (
-                <Link key={item.href} href={item.href} className="glass-card p-4 transition hover:-translate-y-1">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-machine-yellow">{item.chapter}</p>
-                  <h3 className="mt-2 text-base font-bold uppercase tracking-[0.08em] text-system-white">{item.title}</h3>
-                  <p className="mt-2 text-xs text-zinc-400">{item.description}</p>
-                  <img src={item.image} alt={item.title} className="mt-3 h-36 w-full border border-machine-yellow/25 object-cover" />
-                </Link>
-              ))}
-            </div>
           </section>
 
           <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">

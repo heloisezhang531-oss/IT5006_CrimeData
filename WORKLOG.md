@@ -164,3 +164,5 @@ pm run build (frontend) passed successfully. | Risk/TODO: None.
 pm run build (frontend) passed successfully. | Risk/TODO: None.
 - [18:11] Module: Hero status-line token color tweak (frontend/components/home-hub.tsx) | Changes: Set Backend value (ok) to black (	ext-black/85) and Data source mode value (hybrid) back to bright gold (	ext-machine-yellow) per request; kept the rest of the line low-emphasis. | Validation: 
 pm run build (frontend) passed successfully. | Risk/TODO: None.
+- [18:19] Module: Home storyline tab removal (frontend/components/home-hub.tsx, frontend/app/page.tsx) | Changes: Deleted the entire 'Report Storyline Handoff' section from homepage UI, removed related StoryItem type and storyline prop from HomeHub, and removed homepage storyline data constant plus prop wiring in pp/page.tsx. | Validation: 
+pm run build (frontend) passed successfully. | Risk/TODO: None.
