@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+import os
 from pathlib import Path
 from typing import Any
 
@@ -10,14 +11,40 @@ from sqlalchemy import text
 
 from .provider import df_payload, series_payload
 
-ROOT = Path(__file__).resolve().parents[3]
-HARDSHIP_PATH = ROOT / "Hardship Index of Chicago.csv"
+_ROOT = Path(__file__).resolve().parents[3]
+_BACKEND_ROOT = Path(__file__).resolve().parents[2]
+_HARDSHIP_FILENAME = "Hardship Index of Chicago.csv"
+
+
+def _resolve_hardship_path() -> Path | None:
+    env_path = os.getenv("HARDSHIP_INDEX_PATH", "").strip()
+    candidates: list[Path] = []
+
+    if env_path:
+        p = Path(env_path)
+        if not p.is_absolute():
+            p = (_BACKEND_ROOT / p).resolve()
+        candidates.append(p)
+
+    candidates.extend(
+        [
+            _ROOT / _HARDSHIP_FILENAME,
+            _BACKEND_ROOT / _HARDSHIP_FILENAME,
+            Path.cwd() / _HARDSHIP_FILENAME,
+        ]
+    )
+
+    for p in candidates:
+        if p.exists() and p.is_file():
+            return p
+    return None
 
 
 def _load_hardship() -> pd.DataFrame:
-    if not HARDSHIP_PATH.exists():
+    hardship_path = _resolve_hardship_path()
+    if hardship_path is None:
         return pd.DataFrame(columns=["community_area", "community_name", "hardship_2015_2019", "hardship_2020_2024", "hardship_index"])
-    raw = pd.read_csv(HARDSHIP_PATH)
+    raw = pd.read_csv(hardship_path)
     raw = raw[pd.to_numeric(raw.get("GEOID"), errors="coerce").notna()].copy()
     raw["community_area"] = raw["GEOID"].astype(int)
     raw["community_name"] = raw.get("Name", "").astype(str).str.strip()
@@ -295,7 +322,8 @@ def model_predict_next_month(engine, table: str, target_month: str | None = None
     out = pred[pred["pred_month"] == tm][
         ["community_area", "community_name", "pred_month", "pred_prob", "pred_label", "risk_level", "hardship_index"]
     ].copy()
-    out = out.sort_values("pred_prob", ascending=False).reset_index(drop=True)
+    out["pred_prob"] = pd.to_numeric(out["pred_prob"], errors="coerce").fillna(0.0).round(12)
+    out = out.sort_values(["pred_prob", "community_area"], ascending=[False, True]).reset_index(drop=True)
 
     # Re-bin risk segments for map display by month-level ranking:
     # top 25% -> high, top 50% -> medium, remaining -> low.
@@ -396,6 +424,8 @@ def anomaly_observed_vs_predicted(engine, table: str) -> dict[str, Any]:
     if pred.empty:
         return {"meta": {"rows": 0}, "data": []}
     out = pred[["community_area", "pred_month", "actual_count", "pred_prob", "pred_label", "actual_label"]].copy()
+    out["pred_prob"] = pd.to_numeric(out["pred_prob"], errors="coerce").fillna(0.0).round(12)
+    out = out.sort_values(["community_area", "pred_month"], ascending=[True, True]).reset_index(drop=True)
     out["pred_month"] = out["pred_month"].dt.strftime("%Y-%m")
     return df_payload(out)
 

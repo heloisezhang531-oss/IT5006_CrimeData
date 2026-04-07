@@ -10,7 +10,7 @@ router = APIRouter(prefix="/eda", tags=["eda"])
 
 @router.get("/key-stats/arrest-domestic")
 def key_stats_arrest_domestic():
-    return provider.fetch("eda_key_stats_arrest_domestic", svc.key_stats_arrest_domestic)
+    return provider.fetch("eda_key_stats_arrest_domestic_v2", svc.key_stats_arrest_domestic)
 
 
 @router.get("/temporal/yearly")

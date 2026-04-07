@@ -4,12 +4,47 @@ from __future__ import annotations
 
 import os
 import re
+from pathlib import Path
 from typing import Tuple
 
 import pandas as pd
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine, URL
+
+
+def _clean_env(name: str) -> str | None:
+    value = os.getenv(name)
+    if value is None:
+        return None
+    cleaned = value.strip()
+    # Vercel env values piped via stdin may accidentally persist literal "\r\n" suffixes.
+    for token in ("\\r\\n", "\\n", "\\r"):
+        while cleaned.endswith(token):
+            cleaned = cleaned[: -len(token)].strip()
+    return cleaned or None
+
+
+def _resolve_ca_path(ca_path: str | None) -> str | None:
+    if not ca_path:
+        return None
+    raw = ca_path.strip()
+    if not raw:
+        return None
+
+    candidate = Path(raw)
+    candidates = [
+        candidate,
+        Path.cwd() / candidate,
+        Path(__file__).resolve().parent / candidate,
+    ]
+    for path in candidates:
+        try:
+            if path.is_file():
+                return str(path.resolve())
+        except Exception:
+            continue
+    return raw
 
 
 def create_tidb_engine(env_file: str | None = None, pool_recycle: int = 3600) -> Engine:
@@ -19,12 +54,12 @@ def create_tidb_engine(env_file: str | None = None, pool_recycle: int = 3600) ->
     else:
         load_dotenv(override=False)
 
-    user = os.getenv("TIDB_USER")
-    password = os.getenv("TIDB_PASSWORD")
-    host = os.getenv("TIDB_HOST")
-    port = os.getenv("TIDB_PORT")
-    db_name = os.getenv("TIDB_DB_NAME") or "Chicago_data"
-    ca_path = os.getenv("TID_CA_PATH")
+    user = _clean_env("TIDB_USER")
+    password = _clean_env("TIDB_PASSWORD")
+    host = _clean_env("TIDB_HOST")
+    port = _clean_env("TIDB_PORT")
+    db_name = _clean_env("TIDB_DB_NAME") or "Chicago_data"
+    ca_path = _resolve_ca_path(_clean_env("TID_CA_PATH"))
 
     missing = [k for k, v in {
         "TIDB_USER": user,

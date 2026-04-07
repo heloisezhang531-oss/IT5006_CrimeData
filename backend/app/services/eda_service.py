@@ -163,6 +163,10 @@ def key_stats_arrest_domestic(engine, table: str) -> dict[str, Any]:
                 {"type": "Domestic", "raw_value": "True", "count": domestic},
                 {"type": "Non-Domestic", "raw_value": "False", "count": max(total - domestic, 0)},
             ]
+    arrest_order = {"False": 0, "True": 1}
+    domestic_order = {"False": 0, "True": 1}
+    arrest_rows = sorted(arrest_rows, key=lambda r: arrest_order.get(str(r.get("raw_value")), 99))
+    domestic_rows = sorted(domestic_rows, key=lambda r: domestic_order.get(str(r.get("raw_value")), 99))
     return series_payload([{"arrest": arrest_rows, "domestic": domestic_rows}])
 
 
