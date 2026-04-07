@@ -34,7 +34,7 @@ function PoiCorners() {
 
 function AccessLanding({ onEnter }: { onEnter: () => void }) {
   return (
-    <div className="flex min-h-[calc(100vh-180px)] items-center justify-center p-2 md:p-8">
+    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-void/95 p-2 backdrop-blur-sm md:p-8">
       <motion.div
         initial={{ scale: 0.94, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -81,6 +81,7 @@ function AccessLanding({ onEnter }: { onEnter: () => void }) {
           <p>
             CONNECTION: <span className="text-system-white">SECURE</span>
           </p>
+          <p className="text-machine-yellow/75">PRESS ENTER OR CLICK ENTER SYSTEM</p>
         </motion.div>
 
         <motion.button
@@ -117,6 +118,17 @@ export function HomeHub({
     setEntered(granted);
     setHydrated(true);
   }, []);
+
+  useEffect(() => {
+    if (!hydrated || entered) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Enter" || event.key === "NumpadEnter") {
+        enterDashboard();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [hydrated, entered]);
 
   const enterDashboard = () => {
     window.sessionStorage.setItem(ACCESS_SESSION_KEY, "1");
