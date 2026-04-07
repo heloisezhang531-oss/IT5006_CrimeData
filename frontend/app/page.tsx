@@ -15,11 +15,26 @@ const cards = [
 
 export default async function HomePage() {
   const health = await apiGet<{ status: string }>("/health");
+  const keyStats = await apiGet<Record<string, unknown>>("/eda/key-stats/arrest-domestic");
   const healthStatus = String(health.data[0]?.status ?? "unknown");
   const dataSourceMode = String(health.meta?.data_source_mode ?? "n/a");
+  const arrestRows = (keyStats.data[0]?.arrest as Array<Record<string, unknown>>) ?? [];
+  const arrestedCount = Number(
+    arrestRows.find((row) => String(row.raw_value ?? "").toLowerCase() === "true")?.count ?? 0,
+  );
+  const totalCount = arrestRows.reduce((sum, row) => sum + Number(row.count ?? 0), 0);
+  const arrestRate = totalCount > 0 ? (arrestedCount / totalCount) * 100 : 0;
+  const kpis = openingKpis.map((item) =>
+    item.label === "Arrest Rate"
+      ? {
+          ...item,
+          value: Number(arrestRate.toFixed(1)),
+        }
+      : item,
+  );
 
   return (
-    <HomeHub kpis={openingKpis} healthStatus={healthStatus} dataSourceMode={dataSourceMode} cards={cards} />
+    <HomeHub kpis={kpis} healthStatus={healthStatus} dataSourceMode={dataSourceMode} cards={cards} />
   );
 }
 

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState, type ComponentType } from "react";
 import { usePathname } from "next/navigation";
+import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } from "framer-motion";
 import {
   Activity,
   AlertTriangle,
@@ -132,17 +133,47 @@ function isItemActive(itemHref: string, pathname: string): boolean {
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = normalizePath(usePathname());
   const [mobileOpen, setMobileOpen] = useState(false);
+  const prefersReducedMotion = useReducedMotion();
+  const pointerX = useMotionValue(0);
+  const pointerY = useMotionValue(0);
+  const smoothX = useSpring(pointerX, { stiffness: 140, damping: 20, mass: 0.6 });
+  const smoothY = useSpring(pointerY, { stiffness: 140, damping: 20, mass: 0.6 });
+  const rotateX = useTransform(smoothY, [-0.5, 0.5], [4, -4]);
+  const rotateY = useTransform(smoothX, [-0.5, 0.5], [-4, 4]);
 
   const current = useMemo(
     () => NAV_ITEMS.find((item) => isItemActive(item.href, pathname)) ?? NAV_ITEMS[0],
     [pathname],
   );
 
+  const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (prefersReducedMotion) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    const width = rect.width || 1;
+    const height = rect.height || 1;
+    const normalizedX = (event.clientX - rect.left) / width - 0.5;
+    const normalizedY = (event.clientY - rect.top) / height - 0.5;
+    pointerX.set(Math.max(-0.5, Math.min(0.5, normalizedX)));
+    pointerY.set(Math.max(-0.5, Math.min(0.5, normalizedY)));
+  };
+
+  const resetTilt = () => {
+    pointerX.set(0);
+    pointerY.set(0);
+  };
+
   return (
-    <div className="relative h-screen w-full overflow-hidden bg-void text-system-white">
+    <div
+      className="relative h-screen w-full overflow-hidden bg-void text-system-white perspective-[1100px]"
+      onMouseMove={handleMouseMove}
+      onMouseLeave={resetTilt}
+    >
       <DataStreamBackdrop />
 
-      <div className="relative z-10 flex h-full w-full">
+      <motion.div
+        className="relative z-10 flex h-full w-full will-change-transform"
+        style={prefersReducedMotion ? undefined : { rotateX, rotateY, transformStyle: "preserve-3d" }}
+      >
         <aside
           className={`machine-sidebar custom-scrollbar ${mobileOpen ? "translate-x-0" : "-translate-x-full"} fixed inset-y-0 left-0 z-40 w-72 lg:translate-x-0 lg:static lg:w-72`}
         >
@@ -253,7 +284,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           </main>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

@@ -582,13 +582,37 @@ export function PieCard({
 }) {
   if (!hasRows(data)) return <ChartEmpty label="NO PIE DATA" />;
   const palette = colors ?? ["#facc15", "#ef4444", "#f8fafc", "#52525b", "#27272a"];
+  const total = data.reduce((sum, row) => sum + Number(row[valueKey] ?? 0), 0);
+
+  const pieTooltipContent = ({
+    active,
+    payload,
+  }: {
+    active?: boolean;
+    payload?: Array<{ name?: unknown; value?: unknown; payload?: Row }>;
+  }) => {
+    if (!active || !payload || payload.length === 0) return null;
+    const item = payload[0];
+    const row = item?.payload ?? {};
+    const name = String(row[nameKey] ?? item?.name ?? "N/A");
+    const value = Number(row[valueKey] ?? item?.value ?? 0);
+    const pct = total > 0 ? (value / total) * 100 : 0;
+    return (
+      <div style={TOOLTIP_STYLE}>
+        <div style={{ ...TOOLTIP_LABEL_STYLE, marginBottom: "4px" }}>{name.toUpperCase()}</div>
+        <div style={{ color: "#f8fafc", fontSize: "12px" }}>{value.toLocaleString()}</div>
+        <div style={{ color: "#a1a1aa", fontSize: "11px" }}>{pct.toFixed(1)}%</div>
+      </div>
+    );
+  };
+
   return (
     <div className="h-80 w-full">
       <ChartFrame className="h-full">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
-            <Tooltip contentStyle={TOOLTIP_STYLE} labelStyle={TOOLTIP_LABEL_STYLE} />
-            <Legend wrapperStyle={LEGEND_STYLE} />
+            <Tooltip content={pieTooltipContent} />
+            <Legend wrapperStyle={{ ...LEGEND_STYLE, fontSize: "10px" }} iconSize={10} iconType="circle" />
             <Pie data={data} dataKey={valueKey} nameKey={nameKey} cx="50%" cy="50%" outerRadius={108} label>
               {data.map((_, idx) => (
                 <Cell key={`${nameKey}-${idx}`} fill={palette[idx % palette.length]} />

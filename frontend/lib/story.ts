@@ -92,7 +92,7 @@ export const openingKpis: NarrativeKPI[] = [
   { label: "Chicago Crime Records", value: 1048576, unit: "events", tone: "accent" },
   { label: "Communities Covered", value: 77, unit: "areas", tone: "neutral" },
   { label: "Forecast Horizon", value: 1, unit: "month", tone: "positive" },
-  { label: "Domestic Share", value: 19.3, unit: "%", precision: 1, tone: "warning" },
+  { label: "Arrest Rate", value: 17.6, unit: "%", precision: 1, tone: "warning" },
 ];
 
 export const reportAnchors = {
