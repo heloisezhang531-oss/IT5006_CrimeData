@@ -12,7 +12,6 @@ import {
   LayoutDashboard,
   Map as MapIcon,
   Menu,
-  Search,
   Shield,
   Terminal,
   X,
@@ -63,11 +62,11 @@ const NAV_ITEMS: NavItem[] = [
     description: "Early warning and observed/predicted drift",
   },
   {
-    id: "socioeconomic",
-    label: "Socioeconomic",
-    href: "/socioeconomic",
+    id: "prediction",
+    label: "Prediction",
+    href: "/prediction",
     icon: Activity,
-    description: "Hardship-linked public safety context",
+    description: "Predicted risk and hardship-linked context",
   },
   {
     id: "performance",
@@ -75,13 +74,6 @@ const NAV_ITEMS: NavItem[] = [
     href: "/performance",
     icon: BarChart3,
     description: "Model quality and reliability slices",
-  },
-  {
-    id: "command-center",
-    label: "Command Center",
-    href: "/command-center",
-    icon: Terminal,
-    description: "Unified operational intelligence board",
   },
 ];
 
@@ -245,14 +237,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
 
             <div className="hidden items-center gap-3 md:flex">
-              <label className="relative block w-64">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-600" />
-                <input
-                  type="text"
-                  placeholder="SEARCH RECORDS..."
-                  className="w-full border border-machine-yellow/30 bg-void/80 py-2 pl-9 pr-3 text-xs uppercase tracking-[0.1em] text-system-white outline-none transition focus:border-machine-yellow"
-                />
-              </label>
               <button className="inline-flex h-9 w-9 items-center justify-center border border-machine-yellow/30 text-machine-yellow">
                 <Terminal className="h-4 w-4" />
               </button>

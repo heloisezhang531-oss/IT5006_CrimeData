@@ -5,7 +5,7 @@ import { CommunityScatterCard } from "@/components/charts";
 import { RiskMap } from "@/components/risk-map";
 import { EvidencePanel, GlassPanel, PageHero } from "@/components/ui";
 
-export default async function SocioeconomicPage() {
+export default async function PredictionPage() {
   const mapTargetMonth = "2025-06";
   const map = await apiGet<Record<string, number | string>>(`/socio/predicted-risk-hardship-map?target_month=${mapTargetMonth}`);
   const communityGeo = await apiGet<Record<string, unknown>>("/eda/geography/community-geojson");
@@ -57,8 +57,8 @@ export default async function SocioeconomicPage() {
   return (
     <div className="space-y-8">
       <PageHero
-        eyebrow="Socioeconomic Context Monitoring"
-        title="Risk Through the Hardship Lens"
+        eyebrow="Prediction Monitoring"
+        title="Predicted Risk with Hardship Context"
         description="Data used in this page is from June 2025. Use hardship-aware intelligence to distinguish structural vulnerability from short-term spikes and support balanced enforcement plus prevention."
         conclusion="Context signal: structurally vulnerable communities tend to carry persistently higher modeled risk, supporting prevention-oriented planning."
       />
@@ -67,7 +67,7 @@ export default async function SocioeconomicPage() {
         <p className="story-subtitle">Report Story | Phase2 §4.6</p>
         <div className="grid gap-5 xl:grid-cols-[1.2fr_1fr] xl:items-center">
           <div>
-            <h2 className="text-2xl font-semibold text-slate-900">Hardship Story: Context Features Add Operational Meaning</h2>
+            <h2 className="text-2xl font-semibold text-slate-900">Prediction Story: Context Features Add Operational Meaning</h2>
             <p className="mt-2 text-sm text-slate-600">
               This panel mirrors the report's hardship argument: predicted risk should be read together with structural deprivation context
               so resources can blend enforcement and prevention.
@@ -75,7 +75,7 @@ export default async function SocioeconomicPage() {
           </div>
           <img
             src="/pics/socioeconomic.jpg"
-            alt="Socioeconomic risk map snapshot"
+            alt="Prediction risk map snapshot"
             className="h-56 w-full rounded-2xl border border-slate-200 object-cover"
           />
         </div>
@@ -102,7 +102,7 @@ export default async function SocioeconomicPage() {
         </GlassPanel>
       </div>
 
-      <EvidencePanel title="Evidence Tables (Socioeconomic)" summary="Community-level hardship-risk rows for policy review and export.">
+      <EvidencePanel title="Evidence Tables (Prediction)" summary="Community-level hardship-risk rows for policy review and export.">
         <DataTable rows={hardshipScatter as Record<string, unknown>[]} />
       </EvidencePanel>
 

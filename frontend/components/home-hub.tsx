@@ -81,7 +81,6 @@ function AccessLanding({ onEnter }: { onEnter: () => void }) {
           <p>
             CONNECTION: <span className="text-system-white">SECURE</span>
           </p>
-          <p className="text-machine-yellow/75">PRESS ENTER OR CLICK ENTER SYSTEM</p>
         </motion.div>
 
         <motion.button
@@ -169,6 +168,14 @@ export function HomeHub({
               We operationalize a community-month forecasting framework aligned with Phase1 EDA evidence and Phase2 model validation,
               emphasizing interpretable risk allocation instead of reactive policing.
             </p>
+            <div className="mt-2">
+              <Link
+                href="/prediction"
+                className="inline-flex text-sm font-semibold tracking-[0.08em] text-machine-yellow transition hover:text-machine-yellow/80"
+              >
+                For predictions&gt;&gt;
+              </Link>
+            </div>
 
             <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
               {kpis.map((kpi) => (

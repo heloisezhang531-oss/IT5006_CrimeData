@@ -343,6 +343,35 @@ export function ScatterQuadrantCard({
   yThreshold?: number;
 }) {
   if (!hasRows(data)) return <ChartEmpty label="NO SCATTER DATA" />;
+
+  const compactTooltipStyle = {
+    ...TOOLTIP_STYLE,
+    padding: "8px 10px",
+    letterSpacing: "0.02em",
+    textTransform: "none" as const,
+    whiteSpace: "nowrap" as const,
+  };
+
+  const tooltipContent = ({
+    active,
+    payload,
+  }: {
+    active?: boolean;
+    payload?: Array<{ payload?: Row }>;
+  }) => {
+    if (!active || !payload || payload.length === 0) return null;
+    const point = payload[0]?.payload ?? {};
+    const accuracy = Number(point[xKey] ?? 0);
+    const recall = Number(point[yKey] ?? 0);
+    const lineStyle = { ...TOOLTIP_LABEL_STYLE, marginBottom: "4px" };
+    return (
+      <div style={compactTooltipStyle}>
+        <div style={lineStyle}>Accuracy: {accuracy.toFixed(3)}</div>
+        <div style={lineStyle}>Recall: {recall.toFixed(3)}</div>
+      </div>
+    );
+  };
+
   return (
     <div className="h-80 w-full">
       <ChartFrame className="h-full">
@@ -351,7 +380,7 @@ export function ScatterQuadrantCard({
             <CartesianGrid stroke={GRID_STROKE} />
             <XAxis dataKey={xKey} type="number" tick={AXIS_TICK} axisLine={false} tickLine={false} />
             <YAxis dataKey={yKey} type="number" tick={AXIS_TICK} axisLine={false} tickLine={false} />
-            <Tooltip cursor={{ strokeDasharray: "3 3" }} contentStyle={TOOLTIP_STYLE} labelStyle={TOOLTIP_LABEL_STYLE} />
+            <Tooltip cursor={{ strokeDasharray: "3 3" }} content={tooltipContent} />
             <ReferenceLine x={xThreshold} stroke="#71717a" strokeDasharray="4 4" />
             <ReferenceLine y={yThreshold} stroke="#71717a" strokeDasharray="4 4" />
             <Scatter data={data} fill={color} />

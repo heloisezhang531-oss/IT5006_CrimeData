@@ -53,6 +53,12 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def safe_roc_auc(y_true: np.ndarray, prob: np.ndarray) -> float:
+    if len(np.unique(y_true)) < 2:
+        return float("nan")
+    return float(roc_auc_score(y_true, prob))
+
+
 def build_model(model_name: str, params: Dict[str, object], seed: int, scale_pos_weight: float):
     if model_name == "logistic_regression":
         clf = LogisticRegression(
@@ -90,7 +96,7 @@ def build_model(model_name: str, params: Dict[str, object], seed: int, scale_pos
 def metrics_with_threshold(y_true: np.ndarray, prob: np.ndarray, threshold: float) -> Dict[str, float]:
     pred = (prob >= threshold).astype(int)
     return {
-        "roc_auc": float(roc_auc_score(y_true, prob)),
+        "roc_auc": safe_roc_auc(y_true, prob),
         "pr_auc": float(average_precision_score(y_true, prob)),
         "f1": float(f1_score(y_true, pred, zero_division=0)),
         "recall": float(recall_score(y_true, pred, zero_division=0)),
@@ -123,20 +129,25 @@ def main() -> None:
     df = pd.read_csv(data_path, parse_dates=["month", "target_month"])
     df = df.dropna(subset=FEATURE_COLS + ["label"]).copy()
 
+    train_df = df[df["split"] == "train"].copy()
+    val_df = df[df["split"] == "val"].copy()
     train_val_df = df[df["split"].isin(["train", "val"])].copy()
     test_df = df[df["split"] == "test"].copy()
 
     X_train_val = train_val_df[FEATURE_COLS].to_numpy(dtype=float)
     y_train_val = train_val_df["label"].to_numpy(dtype=int)
-    X_test = test_df[FEATURE_COLS].to_numpy(dtype=float)
-    y_test = test_df["label"].to_numpy(dtype=int)
+    split_frames = {
+        "train": train_df,
+        "val": val_df,
+        "test": test_df,
+    }
 
     pos = int(y_train_val.sum())
     neg = int(len(y_train_val) - pos)
     scale_pos_weight = (neg / pos) if pos > 0 else 1.0
 
     model_names = ["logistic_regression", "random_forest", "xgboost"]
-    metrics_rows: List[Dict[str, object]] = []
+    split_metrics_rows: List[Dict[str, object]] = []
     conf_rows: List[Dict[str, object]] = []
 
     for model_name in model_names:
@@ -150,22 +161,35 @@ def main() -> None:
 
         model = build_model(model_name, params, args.seed, scale_pos_weight)
         model.fit(X_train_val, y_train_val)
+        for split_name, split_df in split_frames.items():
+            X_split = split_df[FEATURE_COLS].to_numpy(dtype=float)
+            y_split = split_df["label"].to_numpy(dtype=int)
+            prob_split = model.predict_proba(X_split)[:, 1]
+            pred_split = (prob_split >= threshold).astype(int)
+            metrics = metrics_with_threshold(y_split, prob_split, threshold)
+            split_metrics_rows.append(
+                {
+                    "model": model_name,
+                    "split": split_name,
+                    "threshold": threshold,
+                    "roc_auc": metrics["roc_auc"],
+                    "pr_auc": metrics["pr_auc"],
+                    "f1": metrics["f1"],
+                    "recall": metrics["recall"],
+                    "precision": metrics["precision"],
+                    "accuracy": metrics["accuracy"],
+                }
+            )
+
+            pred_df = split_df[["community_area", "month", "target_month", "label"]].copy()
+            pred_df["pred_prob"] = prob_split
+            pred_df["pred_label"] = pred_split
+            pred_df.to_csv(reports_dir / f"{split_name}_predictions_{model_name}.csv", index=False)
+
+        # Keep test confusion matrix for compatibility.
+        X_test = test_df[FEATURE_COLS].to_numpy(dtype=float)
+        y_test = test_df["label"].to_numpy(dtype=int)
         prob_test = model.predict_proba(X_test)[:, 1]
-
-        metrics = metrics_with_threshold(y_test, prob_test, threshold)
-        metrics_rows.append(
-            {
-                "model": model_name,
-                "threshold": threshold,
-                "test_roc_auc": metrics["roc_auc"],
-                "test_pr_auc": metrics["pr_auc"],
-                "test_f1": metrics["f1"],
-                "test_recall": metrics["recall"],
-                "test_precision": metrics["precision"],
-                "test_accuracy": metrics["accuracy"],
-            }
-        )
-
         pred_test = (prob_test >= threshold).astype(int)
         tn, fp, fn, tp = confusion_matrix(y_test, pred_test, labels=[0, 1]).ravel()
         conf_rows.append(
@@ -178,29 +202,42 @@ def main() -> None:
             }
         )
 
-        pred_df = test_df[["community_area", "month", "target_month", "label"]].copy()
-        pred_df["pred_prob"] = prob_test
-        pred_df["pred_label"] = pred_test
-        pred_df.to_csv(reports_dir / f"test_predictions_{model_name}.csv", index=False)
-
         fi = feature_importance_df(model_name, model, FEATURE_COLS)
         fi.to_csv(reports_dir / f"feature_importance_{model_name}.csv", index=False)
 
+        test_metrics = metrics_with_threshold(y_test, prob_test, threshold)
         print(
-            f"{model_name}: ROC-AUC={metrics['roc_auc']:.4f}, "
-            f"F1={metrics['f1']:.4f}, Recall={metrics['recall']:.4f}"
+            f"{model_name}: TEST ROC-AUC={test_metrics['roc_auc']:.4f}, "
+            f"F1={test_metrics['f1']:.4f}, Recall={test_metrics['recall']:.4f}"
         )
 
-    metrics_df = pd.DataFrame(metrics_rows).sort_values("test_roc_auc", ascending=False)
+    split_metrics_df = pd.DataFrame(split_metrics_rows).sort_values(["split", "roc_auc"], ascending=[True, False])
+    test_metrics_df = (
+        split_metrics_df[split_metrics_df["split"] == "test"]
+        .drop(columns=["split"])
+        .rename(
+            columns={
+                "roc_auc": "test_roc_auc",
+                "pr_auc": "test_pr_auc",
+                "f1": "test_f1",
+                "recall": "test_recall",
+                "precision": "test_precision",
+                "accuracy": "test_accuracy",
+            }
+        )
+        .sort_values("test_roc_auc", ascending=False)
+        .reset_index(drop=True)
+    )
     conf_df = pd.DataFrame(conf_rows)
 
-    metrics_df.to_csv(reports_dir / "test_metrics.csv", index=False)
+    split_metrics_df.to_csv(reports_dir / "split_metrics.csv", index=False)
+    test_metrics_df.to_csv(reports_dir / "test_metrics.csv", index=False)
     conf_df.to_csv(reports_dir / "test_confusion_matrix.csv", index=False)
 
     summary_lines = [
-        "# External Test Summary (2025)",
+        "# Split Metrics Summary (Train / Val / Test)",
         "",
-        metrics_df.to_string(index=False),
+        split_metrics_df.to_string(index=False),
         "",
     ]
     (reports_dir / "summary.md").write_text("\n".join(summary_lines), encoding="utf-8")

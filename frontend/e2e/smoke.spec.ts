@@ -7,9 +7,8 @@ const pages = [
   { path: '/operations', checks: ['Geographical Distribution', 'Community Choropleth (Left)'] },
   { path: '/crime-action', checks: ['Categorical Analysis', 'Top 10 Crime Types (Arrest Breakdown)'] },
   { path: '/anomaly', checks: ['Monitor 2025 Prediction Consistency and Composition Drift', 'Actual vs Predicted High-Risk Area Counts'] },
-  { path: '/socioeconomic', checks: ['Socioeconomic Context Monitoring', 'Predicted Risk Map with Hardship Overlay'] },
+  { path: '/prediction', checks: ['Prediction Monitoring', 'Predicted Risk Map with Hardship Overlay'] },
   { path: '/performance', checks: ['Performance & Accountability', 'Predicted Hotspot vs Actual Hotspot'] },
-  { path: '/command-center', checks: ['Command Center', 'Map: Predicted Next-Month Risk by Region'] },
 ];
 
 function normalize(route: string): string {
