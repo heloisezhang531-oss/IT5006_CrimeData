@@ -2,10 +2,12 @@
 *.joblib
 summary.md
 *.png
+*.jpg
 *.docx
 *.doc
-*.txt
 *.zip
+docs/
+output/
 
 
 # Byte-compiled / optimized / DLL files
@@ -179,3 +181,16 @@ check_db.py
 
 # data files
 data*/
+
+# frontend artifacts
+frontend/node_modules/
+frontend/.next/
+frontend/test-results/
+frontend/playwright-report/
+
+# keep Next.js source library tracked
+!frontend/lib/
+!frontend/lib/*.ts
+!frontend/public/
+!frontend/public/report-figures/
+!frontend/public/report-figures/*.png

@@ -1,0 +1,6 @@
+feature,importance
+spatial_lag_crime_lag1,0.5126838552301534
+spatial_lag_hardship,0.22914553384297404
+hardship_index,0.2100504634369628
+top_type_share,0.0481201474899098
+arrest_rate,0.0
